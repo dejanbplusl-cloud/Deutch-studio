@@ -1,0 +1,1409 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Trophy, Flame, Target, BookOpen, CheckCircle2, XCircle, 
+  RotateCcw, Volume2, Plus, Sparkles, PenTool, AlertTriangle, 
+  ArrowRight, Search, Check, Brain, ShieldCheck, ChevronRight,
+  Layers, BarChart2, Bookmark, Lightbulb, RefreshCw, Trash2,
+  Filter, Award, Briefcase, Home, Building2, MessageSquare, Zap,
+  Server, Cpu, HardDrive, Shield, FileText, Stethoscope, Car,
+  ShoppingBag, Plane, Users, Scale, HelpCircle
+} from 'lucide-react';
+
+// --- RICH EXPANDED B1/B2 DATASET WITH 20+ TOPICS INCL. IT & SYSTEMADMINISTRATION ---
+const INITIAL_DATASET = {
+  writing: [
+    // --- IT & SYSTEMADMINISTRATION TOPICS ---
+    {
+      id: 'w_it1',
+      topic: 'IT & Systemverwaltung',
+      scenario: 'Ankündigung einer Serverwartung (Planirano održavanje servera)',
+      prompt: 'Napiši obavještenje zaposlenima da će u petak od 22:00 do subote u 04:00 sata primarni serveri biti nedostupni zbog planiranog održavanja i ažuriranja sistema.',
+      placeholder: 'Sehr geehrte Kolleginnen und Kollegen...',
+      answerB1: 'Hallo zusammen, am Freitag von 22 Uhr bis Samstag 4 Uhr machen wir Serverwartung. Die Server funktionieren dann nicht. Bitte speichern Sie Ihre Daten.',
+      answerB2: 'Sehr geehrte Kolleginnen und Kollegen, wir möchten Sie darüber informieren, dass am Freitag ab 22:00 Uhr geplante Wartungsarbeiten an unserer Serverinfrastruktur stattfinden. In diesem Zeitraum stehen die zentralen Dienste nicht zur Verfügung. Wir bitten Sie, Ihre Arbeiten rechtzeitig zu speichern.',
+      keywords: ['informieren', 'Wartungsarbeiten', 'Serverinfrastruktur', 'Zeitraum', 'zur Verfügung', 'speichern'],
+      tips: [
+        'U IT okruženju umjesto "wir machen Wartung" koristi nominalni stil: "geplante Wartungsarbeiten finden statt".',
+        'Za sistem koji ne radi B2 izraz je: "steht nicht zur Verfügung" ili "ist vorübergehend außer Betrieb".'
+      ]
+    },
+    {
+      id: 'w_it2',
+      topic: 'IT-Support & Helpdesk',
+      scenario: 'Rückmeldung zu einem Ticket (Netzwerkstörung / Odgovor na ticket)',
+      prompt: 'Napiši odgovor korisniku koji je prijavio problem sa VPN pristupom i mrežom. Obavijesti ga da je problem lociran i da je mrežni tim već otklonio grešku.',
+      placeholder: 'Hallo Herr/Frau...',
+      answerB1: 'Hallo Herr Schulze, das Problem mit dem VPN ist gelöst. Unser Team hat den Fehler repariert. Sie können sich wieder anmelden.',
+      answerB2: 'Hallo Herr Schulze, vielen Dank für Ihre Meldung. Die Netzwerkstörung im Zusammenhang mit dem VPN-Zugang konnte erfolgreich lokalisiert und durch unser IT-Team behoben werden. Der Zugriff sollte ab sofort wieder einwandfrei funktionieren.',
+      keywords: ['Meldung', 'Netzwerkstörung', 'lokalisiert', 'behoben', 'Zugriff', 'einwandfrei'],
+      tips: [
+        'Za grešku/problem u IT-u koristi se glagol "beheben" (einen Fehler/eine Störung beheben), a ne "reparieren".',
+        'Pristup sistemu se naziva "der Zugriff" (der Zugriff auf das System).'
+      ]
+    },
+    {
+      id: 'w_it3',
+      topic: 'IT & Systemverwaltung',
+      scenario: 'Sicherheitswarnung / Phishing-Mail (Upozorenje o bezbjednosti)',
+      prompt: 'Napiši kratko upozorenje kolegama o sumnjivim e-mailovima koji kruže u firmi i zamoli ih da ne klikću na linkove niti otvaraju priloge.',
+      placeholder: 'Achtung an alle Mitarbeiter...',
+      answerB1: 'Achtung! Es gibt gefälschte E-Mails in der Firma. Bitte klicken Sie nicht auf die Links und öffnen Sie keine Dateien.',
+      answerB2: 'Liebe Kolleginnen und Kollegen, aktuell sind verdächtige Phishing-E-Mails in Umlauf. Wir bitten Sie dringend, keine verdächtigen Links anzuklicken und keine Dateianhänge von unbekannten Absendern zu öffnen.',
+      keywords: ['aktuell', 'verdächtige', 'in Umlauf', 'dringend', 'Dateianhänge', 'Absender'],
+      tips: [
+        'Prilog e-maila je "der Dateianhang" (mn. die Dateianhänge).',
+        'Za e-mailove koji se šire koristi se fraza "in Umlauf sein".'
+      ]
+    },
+    {
+      id: 'w_it4',
+      topic: 'IT & Systemverwaltung',
+      scenario: 'Hardware-Upgrade & Notfallwiederherstellung (Zamjena opreme)',
+      prompt: 'Obavijesti tim da će tokom vikenda biti zamijenjen centralni switch i da se očekuje kratak prekid mrežne konekcije u trajanju od 15 minuta.',
+      placeholder: 'Guten Tag zusammen...',
+      answerB1: 'Hallo alle, am Wochenende tauschen wir den neuen Switch aus. Das Internet geht für 15 Minuten nicht.',
+      answerB2: 'Guten Tag zusammen, im Rahmen einer Systemoptimierung wird am kommenden Wochenende der zentrale Netzwerk-Switch ausgetauscht. Bitte beachten Sie, dass es dadurch zu einer kurzzeitigen Unterbrechung der Netzwerkverbindung von ca. 15 Minuten kommen kann.',
+      keywords: ['Systemoptimierung', 'ausgetauscht', 'Unterbrechung', 'Netzwerkverbindung', 'kurzzeitigen'],
+      tips: [
+        'Kratak prekid rada se stručno zove "kurzzeitige Unterbrechung" ili "Ausfallzeit".',
+        'Za zamjenu komponente koristi se "etwas austauschen" ili "ersetzen".'
+      ]
+    },
+    {
+      id: 'w_it5',
+      topic: 'IT-Support & Helpdesk',
+      scenario: 'Benutzerrechte & Account-Sperrung (Korisnička prava)',
+      prompt: 'Odgovori novom zaposlenom koji ne može pristupiti dijeljenom mrežnom disk-u (Shared Drive) da su njegove privilegije u izradi i da će biti aktivne za sat vremena.',
+      placeholder: 'Hallo...',
+      answerB1: 'Hallo, du hast noch keine Rechte für den Ordner. Ich mache das gleich und in einer Stunde geht es.',
+      answerB2: 'Hallo, Ihre Berechtigungen für das Netzlaufwerk werden derzeit von der Systemadministration eingerichtet. Der Freischaltungsprozess sollte innerhalb der nächsten Stunde abgeschlossen sein.',
+      keywords: ['Berechtigungen', 'Netzlaufwerk', 'Systemadministration', 'Freischaltungsprozess', 'abgeschlossen'],
+      tips: [
+        'Aktivacija naloga ili pristupa naziva se "die Freischaltung".',
+        'Mrežni disk je "das Netzlaufwerk" ili "der Freigabeordner".'
+      ]
+    },
+
+    // --- GENERAL & BUSINESS TOPICS ---
+    {
+      id: 'w1',
+      topic: 'Beruf',
+      scenario: 'Krankmeldung beim Arbeitgeber (Prijava bolovanja)',
+      prompt: 'Napiši kratki e-mail šefu u kojem obavještavaš da si bolestan, da ne dolaziš danas na posao, da ideš doktoru i da ćeš javiti čim dobiješ doznaku (AU-Bescheinigung).',
+      placeholder: 'Sehr geehrte/r Frau/Herr...',
+      answerB1: 'Hallo Herr Müller, ich bin heute krank und kann nicht zur Arbeit kommen. Ich gehe zum Arzt und schreibe Ihnen später.',
+      answerB2: 'Sehr geehrter Herr Müller, hiermit möchte ich Sie darüber informieren, dass ich heute krankheitsbedingt nicht am Arbeitsplatz erscheinen kann. Ich werde heute Morgen einen Arzt aufsuchen und Ihnen die Arbeitsunfähigkeitsbescheinigung baldmöglichst zukommen lassen.',
+      keywords: ['krankheitsbedingt', 'Arbeitsplatz', 'aufsuchen', 'Arbeitsunfähigkeitsbescheinigung', 'zukommen lassen'],
+      tips: [
+        'B1 koristi "ich bin krank", dok B2 koristi elegantnije "krankheitsbedingt nicht erscheinen können".',
+        'Umjesto "ich schicke die Bescheinigung" koristi "zukommen lassen".'
+      ]
+    },
+    {
+      id: 'w2',
+      topic: 'Wohnen & Miete',
+      scenario: 'E-Mail an den Vermieter (Popravka u stanu)',
+      prompt: 'Napiši poruku stanodavcu da grijanje u dnevnoj sobi ne radi već dva dana i zamoli ga za brzi dolazak majstora.',
+      placeholder: 'Sehr geehrte/r Frau/Herr...',
+      answerB1: 'Hallo Herr Weber, die Heizung im Wohnzimmer geht seit zwei Tagen nicht. Können Sie bitte einen Handwerker schicken?',
+      answerB2: 'Sehr geehrter Herr Weber, ich muss Ihnen mitteilen, dass die Heizung im Wohnzimmer seit zwei Tagen außer Betrieb ist. Da es sehr kalt ist, bitte ich Sie, baldmöglichst einen Handwerker mit der Reparatur zu beauftragen.',
+      keywords: ['außer Betrieb', 'mitteilen', 'baldmöglichst', 'beauftragen', 'Reparatur'],
+      tips: [
+        'Umjesto "geht nicht" koristi "ist außer Betrieb" ili "funktioniert nicht einwandfrei".'
+      ]
+    },
+    {
+      id: 'w3',
+      topic: 'Amt & Behörden',
+      scenario: 'Terminverschiebung beim Amt (Odlaganje termina u opštini/Amt-u)',
+      prompt: 'Ljubazno zamoli za novi termin u opštini/Ausländerbehörde jer iz poslovnih razloga ne možeš doći u predloženo vrijeme.',
+      placeholder: 'Sehr geehrte Damen und Herren...',
+      answerB1: 'Sehr geehrte Damen und Herren, ich kann am Dienstag nicht kommen, weil ich arbeiten muss. Kann ich einen neuen Termin haben?',
+      answerB2: 'Sehr geehrte Damen und Herren, aus beruflichen Gründen kann ich den vereinbarten Termin am Dienstag leider nicht wahrnehmen. Ich bitte Sie daher höflich um die Einräumung eines Ausweichtermins.',
+      keywords: ['aus beruflichen Gründen', 'wahrnehmen', 'höflich', 'Ausweichtermin', 'vereinbarten'],
+      tips: [
+        'B1 koristi "weil ich arbeiten muss", B2 koristi nominalnu konstrukciju "aus beruflichen Gründen".'
+      ]
+    },
+    {
+      id: 'w4',
+      topic: 'Kundenservice & Reklamation',
+      scenario: 'Beschwerde über eine Verspätung (Prigovor / Reklamacija)',
+      prompt: 'Napiši prigovor službi za korisnike jer ti isporučeni paket kasni sedam dana bez obavještenja.',
+      placeholder: 'Sehr geehrte Damen und Herren...',
+      answerB1: 'Sehr geehrte Damen und Herren, mein Paket ist seit einer Woche nicht angekommen. Warum informieren Sie mich nicht?',
+      answerB2: 'Sehr geehrte Damen und Herren, leider muss ich mich über die erhebliche Verzögerung bei der Zustellung meiner Bestellung beschweren. Trotz mehrmaliger Nachfrage habe ich bisher keine Benachrichtigung erhalten.',
+      keywords: ['erhebliche Verzögerung', 'Zustellung', 'beschweren', 'Nachfrage', 'Benachrichtigung'],
+      tips: [
+        'Poveži rečenicu sa "Trotz + Genitiv" (Trotz mehrmaliger Nachfrage).'
+      ]
+    },
+    {
+      id: 'w5',
+      topic: 'Finanzen & Steuern',
+      scenario: 'Frage an den Steuerberater (Pitanje za poreznog savjetnika)',
+      prompt: 'Napiši poruku poreznom savjetniku i pitaj koje dokumente moraš priložiti za godišnju prijavu poreza (Steuererklärung).',
+      placeholder: 'Sehr geehrte/r Frau/Herr...',
+      answerB1: 'Guten Tag, welche Unterlagen brauche ich für meine Steuererklärung? Können Sie mir eine Liste schicken?',
+      answerB2: 'Sehr geehrte Frau Schneider, ich würde mich freuen, wenn Sie mir mitteilen könnten, welche erforderlichen Unterlagen für die Einreichung der diesjährigen Steuererklärung benötigt werden.',
+      keywords: ['erforderlichen Unterlagen', 'Einreichung', 'Steuererklärung', 'benötigt', 'mitteilen'],
+      tips: [
+        'Dokumenti i papiri se zvanično zovu "Unterlagen" ili "Dokumente".'
+      ]
+    }
+  ],
+
+  errors: [
+    // --- IT TOPICS ---
+    {
+      id: 'e_it1',
+      topic: 'IT & Systemverwaltung',
+      sentence: 'Der Administrator hat das neue Firewall-Update gestern installiert werden.',
+      isCorrect: false,
+      errorWord: 'installiert werden',
+      correction: 'installiert',
+      correctSentence: 'Der Administrator hat das neue Firewall-Update gestern installiert.',
+      explanation: 'Aktivna prošlost (Perfekt) se tvori: hat + Partizip II (installiert). Dodavanje "werden" pravi pogrešnu pasivnu konstrukciju.',
+      category: 'Aktiv vs. Passiv'
+    },
+    {
+      id: 'e_it2',
+      topic: 'IT-Support & Helpdesk',
+      sentence: 'Bei technische Problemen wenden Sie sich bitte direkt an den IT-Helpdesk.',
+      isCorrect: false,
+      errorWord: 'bei technische Problemen',
+      correction: 'bei technischen Problemen',
+      correctSentence: 'Bei technischen Problemen wenden Sie sich bitte direkt an den IT-Helpdesk.',
+      explanation: 'Predlog "bei" uvek zahtijeva DATIV. Množina bez člana u dativu: pridjev dobija nastavak -en (bei technischen Problemen).',
+      category: 'Adjektivdeklination (Dativ Plural)'
+    },
+    {
+      id: 'e_it3',
+      topic: 'IT & Systemverwaltung',
+      sentence: 'Nachdem der Server neu gestartet wurde, funktionierten alle Dienste wieder einwandfrei.',
+      isCorrect: true,
+      errorWord: '',
+      correction: '',
+      correctSentence: 'Nachdem der Server neu gestartet wurde, funktionierten alle Dienste wieder einwandfrei.',
+      explanation: 'Rečenica je 100% tačna! "Nachdem" zahtijeva da radnja u zavisnoj rečenici bude vremenski ispred glavne.',
+      category: 'Temporalsätze (Nachdem)'
+    },
+    {
+      id: 'e_it4',
+      topic: 'IT & Systemverwaltung',
+      sentence: 'Wegen ein schwerer Systemfehler musste der Hauptserver heruntergefahren werden.',
+      isCorrect: false,
+      errorWord: 'wegen ein schwerer Systemfehler',
+      correction: 'wegen eines schweren Systemfehlers',
+      correctSentence: 'Wegen eines schweren Systemfehlers musste der Hauptserver heruntergefahren werden.',
+      explanation: 'Predlog "wegen" u formalnom i B2/C1 njemačkom jeziku zahtijeva GENITIV (eines schweren Systemfehlers).',
+      category: 'Genitivpräpositionen (Wegen)'
+    },
+    {
+      id: 'e_it5',
+      topic: 'IT-Support & Helpdesk',
+      sentence: 'Bitte geben Sie Bescheid, wenn das Problem erneut auftritt.',
+      isCorrect: true,
+      errorWord: '',
+      correction: '',
+      correctSentence: 'Bitte geben Sie Bescheid, wenn das Problem erneut auftritt.',
+      explanation: 'Rečenica je tačna. "Bescheid geben" je fiksna fraza, a "wenn" uvezuje zavisnu rečenicu sa glagolom na kraju.',
+      category: 'Nomen-Verb-Verbindungen & Nebensatz'
+    },
+
+    // --- OTHER TOPICS ---
+    {
+      id: 'e1',
+      topic: 'Beruf',
+      sentence: 'Ich freue mich sehr auf die gute Zusammenarbeit in die neue Firma.',
+      isCorrect: false,
+      errorWord: 'in die neue Firma',
+      correction: 'in der neuen Firma',
+      correctSentence: 'Ich freue mich sehr auf die gute Zusammenarbeit in der neuen Firma.',
+      explanation: 'Pitanje je "Wo?" (u novoj firmi), što zahtijeva DATIV (in der neuen Firma).',
+      category: 'Wechselpräpositionen'
+    },
+    {
+      id: 'e2',
+      topic: 'Gesundheit & Arzt',
+      sentence: 'Der Arzt hat dem Patienten ein wirksames Medikament verschrieben.',
+      isCorrect: true,
+      errorWord: '',
+      correction: '',
+      correctSentence: 'Der Arzt hat dem Patienten ein wirksames Medikament verschrieben.',
+      explanation: 'Riječ "Patient" je N-Deklinacija (dem Patienten - Dativ). Rečenica je potpuno tačna!',
+      category: 'N-Deklination & Dativ'
+    },
+    {
+      id: 'e3',
+      topic: 'Wohnen & Miete',
+      sentence: 'Wir wohnen seit zwei Jahren in einem sehr schönes Haus.',
+      isCorrect: false,
+      errorWord: 'einem sehr schönes Haus',
+      correction: 'einem sehr schönen Haus',
+      correctSentence: 'Wir wohnen seit zwei Jahren in einem sehr schönen Haus.',
+      explanation: 'Predlog "seit" i "in" (u značenju gdje) zahtijevaju DATIV. Srednji rod u dativu: "einem schönen Haus".',
+      category: 'Adjektivdeklination (Dativ)'
+    },
+    {
+      id: 'e4',
+      topic: 'Projektmanagement',
+      sentence: 'Obwohl das Projekt sehr komplex war, haben wir es pünktlich abgeschlossen.',
+      isCorrect: true,
+      errorWord: '',
+      correction: '',
+      correctSentence: 'Obwohl das Projekt sehr komplex war, haben wir es pünktlich abgeschlossen.',
+      explanation: 'Ispravan red riječi nakon konektora "obwohl" (glagol na kraju zavisne rečenice).',
+      category: 'Nebensätze (obwohl)'
+    }
+  ],
+
+  vocabulary: [
+    // --- IT TOPICS ---
+    {
+      id: 'v_it1',
+      topic: 'IT & Systemverwaltung',
+      basic: 'neue Software aufspielen',
+      context: 'Wir müssen die neue Software auf den Servern installieren.',
+      advanced: 'Software einspielen / aufspielen / bereitstellen',
+      options: ['bereitstellen', 'hochmachen', 'einsetzen tun', 'abstellen'],
+      correctOption: 'bereitstellen',
+      redemittel: 'eine Anwendung im Netzwerk bereitstellen / ausrollen',
+      example: 'Das Update wurde erfolgreich im gesamten Unternehmensnetzwerk bereitgestellt.'
+    },
+    {
+      id: 'v_it2',
+      topic: 'IT-Support & Helpdesk',
+      basic: 'Zugang geben',
+      context: 'Der neue Mitarbeiter braucht Zugang zum Ordner.',
+      advanced: 'Zugriff gewähren / Berechtigung erteilen',
+      options: ['Zugriff gewähren', 'Zugang erlauben', 'Rechte öffnen', 'Passwort schicken'],
+      correctOption: 'Zugriff gewähren',
+      redemittel: 'jemandem Zugriff auf ein System gewähren',
+      example: 'Dem neuen Systemadministrator wurden die erforderlichen Zugriffsrechte gewährt.'
+    },
+    {
+      id: 'v_it3',
+      topic: 'IT & Systemverwaltung',
+      basic: 'Fehler suchen',
+      context: 'Wir müssen suchen, warum das Netz langsam ist.',
+      advanced: 'Fehlersuche durchführen / Analyse vornehmen',
+      options: ['Fehlersuche durchführen', 'Fehler schauen', 'Problem suchen', 'Suchen machen'],
+      correctOption: 'Fehlersuche durchführen',
+      redemittel: 'eine systematische Fehlersuche / Diagnose durchführen',
+      example: 'Unser IT-Team führt zurzeit eine gründliche Fehlersuche im Netzwerk durch.'
+    },
+    {
+      id: 'v_it4',
+      topic: 'IT & Systemverwaltung',
+      basic: 'Sicherheitskopie machen',
+      context: 'Wir müssen jeden Tag alle Daten sichern.',
+      advanced: 'ein Backup erstellen / eine Datensicherung durchführen',
+      options: ['eine Datensicherung durchführen', 'Daten aufheben', 'Kopie speichern tun', 'Dateien behalten'],
+      correctOption: 'eine Datensicherung durchführen',
+      redemittel: 'regelmäßige Datensicherungen durchführen / Backups anlegen',
+      example: 'Bevor das System aktualisiert wird, muss eine vollständige Datensicherung durchgeführt werden.'
+    },
+
+    // --- OTHER TOPICS ---
+    {
+      id: 'v1',
+      topic: 'Beruf',
+      basic: 'machen',
+      context: 'Wir müssen diese Aufgabe bis morgen machen.',
+      advanced: 'erledigen / ausführen',
+      options: ['erledigen', 'schaffen', 'machen lassen', 'machen tun'],
+      correctOption: 'erledigen',
+      redemittel: 'eine Aufgabe erledigen / einen Auftrag ausführen',
+      example: 'Wir müssen diese Aufgabe bis morgen erledigen.'
+    },
+    {
+      id: 'v2',
+      topic: 'Verträge & Versicherungen',
+      basic: 'kündigen',
+      context: 'Ich möchte meinen Handyvertrag beenden.',
+      advanced: 'den Vertrag widerrufen / auflösen',
+      options: ['auflösen', 'stoppen', 'abbrechen', 'schließen'],
+      correctOption: 'auflösen',
+      redemittel: 'einen Vertrag fristgerecht kündigen / auflösen',
+      example: 'Ich möchte den Vertrag zum nächstmöglichen Zeitpunkt auflösen.'
+    }
+  ],
+
+  grammarDrill: [
+    {
+      id: 'g_it1',
+      topic: 'IT & Systemverwaltung',
+      question: 'Die Daten werden automatisch jeden Abend auf ein externes Laufwerk _____.',
+      options: ['gesichert', 'sichern', 'gesichert werden', 'sicherte'],
+      correct: 'gesichert',
+      explanation: 'Sadašnji pasiv (Präsens Passiv): werden + Partizip II (gesichert).'
+    },
+    {
+      id: 'g_it2',
+      topic: 'IT-Support & Helpdesk',
+      question: 'Bitte starten Sie den Rechner neu, _____ das Problem weiterhin besteht.',
+      options: ['falls', 'obwohl', 'trotzdem', 'damit'],
+      correct: 'falls',
+      explanation: 'Za uslov ("u slučaju da") koristi se uslovni veznik "falls" ili "wenn".'
+    },
+    {
+      id: 'g_it3',
+      topic: 'IT & Systemverwaltung',
+      question: 'Aufgrund _____ (der) unerwarteten Serverausfalls konnte das Projekt nicht rechtzeitig fertiggestellt werden.',
+      options: ['des', 'dem', 'den', 'die'],
+      correct: 'des',
+      explanation: 'Predlog "aufgrund" traži Genitiv muškog/srednjeg roda: aufgrund des Serverausfalls.'
+    },
+    {
+      id: 'g1',
+      topic: 'Beruf',
+      question: 'Ich rufe Sie an, _____ ich eine Frage zu meiner Abrechnung habe.',
+      options: ['weil', 'denn', 'deshalb', 'trotzdem'],
+      correct: 'weil',
+      explanation: 'Glagol "habe" je na kraju rečenice -> zavisni veznik "weil".'
+    },
+    {
+      id: 'g2',
+      topic: 'Mobilität & Auto',
+      question: 'Das Auto steht genau _____ (die) Werkstatt.',
+      options: ['vor der', 'vor die', 'in die', 'auf der'],
+      correct: 'vor der',
+      explanation: 'Pitanje Wo? (gdje se nalazi auto) -> Dativ ženskog roda = vor der Werkstatt.'
+    }
+  ]
+};
+
+// TOPICS LIST FOR FILTERING (20+ TOPICS)
+const ALL_TOPICS = [
+  { id: 'All', label: 'Sve Teme (Alle)', icon: Layers },
+  { id: 'IT & Systemverwaltung', label: 'IT & Systemadmin', icon: Server },
+  { id: 'IT-Support & Helpdesk', label: 'IT-Support & Helpdesk', icon: Cpu },
+  { id: 'Beruf', label: 'Posao & Arbeit', icon: Briefcase },
+  { id: 'Projektmanagement', label: 'Projektmanagement', icon: FileText },
+  { id: 'Meetings & Smalltalk', label: 'Meetings & Smalltalk', icon: MessageSquare },
+  { id: 'Bewerbung & Karriere', label: 'Bewerbung & Karriere', icon: Award },
+  { id: 'Amt & Behörden', label: 'Amt & Administracija', icon: Building2 },
+  { id: 'Finanzen & Steuern', label: 'Finanzen & Steuern', icon: Zap },
+  { id: 'Verträge & Versicherungen', label: 'Verträge & Ugovori', icon: Shield },
+  { id: 'Wohnen & Miete', label: 'Wohnen & Stanovanje', icon: Home },
+  { id: 'Gesundheit & Arzt', label: 'Gesundheit & Arzt', icon: Stethoscope },
+  { id: 'Kundenservice & Reklamation', label: 'Kundenservice & Reklamacije', icon: HelpCircle },
+  { id: 'Mobilität & Auto', label: 'Auto & Transport', icon: Car },
+  { id: 'Einkaufen & Lieferungen', label: 'Einkaufen & Kupovina', icon: ShoppingBag },
+  { id: 'Reise & Urlaub', label: 'Reise & Putovanja', icon: Plane },
+  { id: 'Kommunikation', label: 'Kommunikation', icon: MessageSquare },
+  { id: 'Aus- und Weiterbildung', label: 'Ausbildung & Edukacija', icon: BookOpen },
+  { id: 'Freizeit & Sport', label: 'Freizeit & Slobodno vrijeme', icon: Flame },
+  { id: 'Umwelt & Medien', label: 'Umwelt & Mediji', icon: Sparkles },
+  { id: 'Familie & Soziales', label: 'Familie & Društvo', icon: Users },
+  { id: 'Kultur & Recht', label: 'Kultur & Pravo', icon: Scale }
+];
+
+// ==========================================
+// MODULE 1: WRITING & STYLE
+// ==========================================
+function WritingModule({ exercises, onComplete, speak, selectedTopic, setSelectedTopic }) {
+  const [index, setIndex] = useState(0);
+  const [userInput, setUserInput] = useState('');
+  const [showResult, setShowResult] = useState(false);
+
+  const current = exercises[index] || exercises[0];
+
+  useEffect(() => {
+    setUserInput('');
+    setShowResult(false);
+  }, [index, selectedTopic]);
+
+  if (!current) {
+    return (
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 text-center text-slate-400">
+        Nema vježbi za izabranu kategoriju. Izaberi drugu kategoriju sa trake iznad.
+      </div>
+    );
+  }
+
+  const handleNext = () => {
+    setShowResult(false);
+    setUserInput('');
+    setIndex((prev) => (prev + 1) % exercises.length);
+  };
+
+  const handleCheck = () => {
+    setShowResult(true);
+    if (onComplete) onComplete(true);
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto flex flex-col gap-6">
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+        {/* Scenario Header */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 text-xs font-semibold rounded-full border border-indigo-500/20">
+              {current.topic}
+            </span>
+            <span className="text-xs text-slate-400 font-medium">
+              Vježba {index + 1} od {exercises.length}
+            </span>
+          </div>
+
+          <button
+            onClick={() => speak(current.prompt)}
+            className="text-slate-400 hover:text-white text-xs font-medium flex items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 transition"
+          >
+            <Volume2 className="w-3.5 h-3.5 text-indigo-400" /> Poslušaj zadatak
+          </button>
+        </div>
+
+        <div>
+          <h3 className="text-slate-100 font-bold text-base sm:text-lg mb-2">{current.scenario}</h3>
+          <p className="text-slate-300 text-sm leading-relaxed bg-slate-950/60 p-4 rounded-xl border border-slate-800/80">
+            {current.prompt}
+          </p>
+        </div>
+
+        {/* User Textarea Input */}
+        <div>
+          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+            Tvoj Odgovor (Napiši rečenicu ili e-mail):
+          </label>
+          <textarea
+            rows={5}
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            placeholder={current.placeholder}
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 transition resize-none"
+          />
+        </div>
+
+        {/* Keywords */}
+        {current.keywords && current.keywords.length > 0 && (
+          <div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+              Korisne reči i fraze za upotrebu:
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {current.keywords.map((kw, i) => (
+                <span key={i} className="px-2.5 py-1 bg-slate-950 text-indigo-300 text-xs rounded-lg border border-slate-800 font-mono">
+                  {kw}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex items-center justify-between gap-4 pt-2">
+          <button
+            onClick={handleNext}
+            className="px-4 py-2.5 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded-xl text-xs sm:text-sm font-bold border border-slate-800 transition flex items-center gap-2"
+          >
+            <RotateCcw className="w-4 h-4" /> Sljedeća Vježba
+          </button>
+
+          <button
+            onClick={handleCheck}
+            disabled={!userInput.trim()}
+            className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-40 text-white rounded-xl text-xs sm:text-sm font-bold transition shadow-lg shadow-indigo-600/20 flex items-center gap-2"
+          >
+            <CheckCircle2 className="w-4 h-4" /> {showResult ? 'Sakrij Uporedna Rešenja' : 'Uporedi sa B1 / B2'}
+          </button>
+        </div>
+
+        {/* Comparison Result */}
+        {showResult && (
+          <div className="space-y-4 pt-4 border-t border-slate-800 animate-fadeIn">
+            <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-5">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Standardni B1 Odgovor:</span>
+                <button onClick={() => speak(current.answerB1)} className="text-slate-400 hover:text-white p-1">
+                  <Volume2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <p className="text-slate-300 text-sm italic">"{current.answerB1}"</p>
+            </div>
+
+            <div className="bg-emerald-950/20 border border-emerald-500/30 rounded-xl p-5">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Elevirani Poslovni B2 Odgovor:</span>
+                <button onClick={() => speak(current.answerB2)} className="text-slate-400 hover:text-white p-1">
+                  <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+                </button>
+              </div>
+              <p className="text-slate-100 text-sm font-medium italic mb-3">"{current.answerB2}"</p>
+              
+              {current.tips && current.tips.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-emerald-500/20 space-y-1">
+                  <span className="text-[10px] font-bold text-emerald-400 uppercase block mb-1">Savjeti za B2 stil:</span>
+                  {current.tips.map((tip, i) => (
+                    <p key={i} className="text-xs text-slate-300 flex items-start gap-1.5">
+                      <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                      <span>{tip}</span>
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// MODULE 2: ERROR DETECTOR
+// ==========================================
+function ErrorDetectorModule({ exercises, onAnswer, speak }) {
+  const [index, setIndex] = useState(0);
+  const [selectedChoice, setSelectedChoice] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
+
+  const current = exercises[index] || exercises[0];
+
+  useEffect(() => {
+    setSelectedChoice(null);
+    setSubmitted(false);
+  }, [index]);
+
+  if (!current) {
+    return (
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 text-center text-slate-400">
+        Nema vježbi u ovoj kategoriji. Izaberi drugu kategoriju.
+      </div>
+    );
+  }
+
+  const handleSubmit = () => {
+    if (selectedChoice === null) return;
+    setSubmitted(true);
+    const isCorrect = selectedChoice === current.isCorrect;
+    if (onAnswer) onAnswer(isCorrect, current);
+  };
+
+  const handleNext = () => {
+    setSelectedChoice(null);
+    setSubmitted(false);
+    setIndex((prev) => (prev + 1) % exercises.length);
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto flex flex-col gap-6">
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <span className="px-3 py-1 bg-violet-500/10 text-violet-400 text-xs font-semibold rounded-full border border-violet-500/20">
+            {current.category}
+          </span>
+          <button onClick={() => speak(current.sentence)} className="text-slate-400 hover:text-white p-1 text-xs flex items-center gap-1">
+            <Volume2 className="w-3.5 h-3.5" /> Poslušaj
+          </button>
+        </div>
+
+        <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 text-center text-base sm:text-lg font-medium text-slate-100">
+          "{current.sentence}"
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <button
+            onClick={() => !submitted && setSelectedChoice(true)}
+            className={`p-4 rounded-xl border font-bold text-sm transition flex flex-col items-center gap-2 ${
+              selectedChoice === true
+                ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
+                : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+            }`}
+          >
+            <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+            <span>Tačno (Richtig)</span>
+          </button>
+
+          <button
+            onClick={() => !submitted && setSelectedChoice(false)}
+            className={`p-4 rounded-xl border font-bold text-sm transition flex flex-col items-center gap-2 ${
+              selectedChoice === false
+                ? 'bg-rose-500/20 border-rose-500 text-rose-300'
+                : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+            }`}
+          >
+            <XCircle className="w-6 h-6 text-rose-400" />
+            <span>Netačno (Falsch)</span>
+          </button>
+        </div>
+
+        {!submitted ? (
+          <button
+            onClick={handleSubmit}
+            disabled={selectedChoice === null}
+            className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-xl font-bold text-sm transition"
+          >
+            Potvrdi Odgovor
+          </button>
+        ) : (
+          <div className="space-y-4 animate-fadeIn">
+            <div className={`p-4 rounded-xl border text-sm ${
+              selectedChoice === current.isCorrect
+                ? 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200'
+                : 'bg-rose-950/30 border-rose-500/40 text-rose-200'
+            }`}>
+              <p className="font-bold mb-1 flex items-center gap-2">
+                {selectedChoice === current.isCorrect ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                ) : (
+                  <XCircle className="w-4 h-4 text-rose-400" />
+                )}
+                {selectedChoice === current.isCorrect ? 'Odlično! Tačan odgovor.' : 'Pogrešno! Pogledaj objašnjenje ispod.'}
+              </p>
+              <p className="text-xs text-slate-300 mt-2 leading-relaxed">{current.explanation}</p>
+              {!current.isCorrect && (
+                <div className="mt-3 pt-2 border-t border-slate-800">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Tačna rečenica:</span>
+                  <p className="text-emerald-300 font-semibold text-xs italic">"{current.correctSentence}"</p>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={handleNext}
+              className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold text-sm transition flex items-center justify-center gap-2"
+            >
+              <RotateCcw className="w-4 h-4" /> Sljedeća Rečenica
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// MODULE 3: VOCABULARY B1 -> B2
+// ==========================================
+function VocabularyModule({ items, onComplete, speak }) {
+  const [index, setIndex] = useState(0);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
+
+  const current = items[index] || items[0];
+
+  useEffect(() => {
+    setSelectedOption(null);
+    setSubmitted(false);
+  }, [index]);
+
+  if (!current) {
+    return (
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 text-center text-slate-400">
+        Nema vokabulara u ovoj kategoriji.
+      </div>
+    );
+  }
+
+  const handleSelect = (option) => {
+    if (submitted) return;
+    setSelectedOption(option);
+    setSubmitted(true);
+    if (onComplete) onComplete(option === current.correctOption);
+  };
+
+  const handleNext = () => {
+    setSelectedOption(null);
+    setSubmitted(false);
+    setIndex((prev) => (prev + 1) % items.length);
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto flex flex-col gap-6">
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+        <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-2">
+          <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">B1 Osnovni Izraz:</span>
+          <span className="text-xl font-bold text-white block">{current.basic}</span>
+          <p className="text-xs text-slate-400 italic">Kontekst: "{current.context}"</p>
+        </div>
+
+        <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+          Izaberi naprednu B2/C1 zamjenu za ovaj izraz:
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {current.options.map((option, i) => {
+            const isCorrect = option === current.correctOption;
+            const isSelected = selectedOption === option;
+
+            let btnStyle = 'bg-slate-950 border-slate-800 text-slate-200 hover:border-slate-700';
+            if (submitted) {
+              if (isCorrect) btnStyle = 'bg-emerald-950/40 border-emerald-500 text-emerald-300';
+              else if (isSelected) btnStyle = 'bg-rose-950/40 border-rose-500 text-rose-300';
+            }
+
+            return (
+              <button
+                key={i}
+                onClick={() => handleSelect(option)}
+                disabled={submitted}
+                className={`p-4 rounded-xl border font-semibold text-sm transition text-left flex items-center justify-between ${btnStyle}`}
+              >
+                <span>{option}</span>
+                {submitted && isCorrect && <Check className="w-4 h-4 text-emerald-400 shrink-0" />}
+              </button>
+            );
+          })}
+        </div>
+
+        {submitted && (
+          <div className="space-y-4 pt-4 border-t border-slate-800 animate-fadeIn">
+            <div className="bg-indigo-950/20 border border-indigo-500/30 p-4 rounded-xl space-y-2 text-xs">
+              <span className="font-bold text-indigo-400 block uppercase">Fiksna B2 Fraza (Redemittel):</span>
+              <p className="text-slate-200 font-mono">{current.redemittel}</p>
+              <p className="text-slate-400 italic">Primer: "{current.example}"</p>
+            </div>
+
+            <button
+              onClick={handleNext}
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-sm transition flex items-center justify-center gap-2"
+            >
+              <RotateCcw className="w-4 h-4" /> Sljedeći Izraz
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// MODULE 4: GRAMMAR DRILL
+// ==========================================
+function GrammarDrillModule({ drills, onComplete }) {
+  const [index, setIndex] = useState(0);
+  const [selectedOpt, setSelectedOpt] = useState(null);
+
+  const current = drills[index] || drills[0];
+
+  if (!current) {
+    return (
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 text-center text-slate-400">
+        Nema gramatičkih vježbi za izabranu temu.
+      </div>
+    );
+  }
+
+  const handleChoose = (opt) => {
+    setSelectedOpt(opt);
+    if (onComplete) onComplete(opt === current.correct);
+  };
+
+  const handleNext = () => {
+    setSelectedOpt(null);
+    setIndex((prev) => (prev + 1) % drills.length);
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto flex flex-col gap-6">
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+        <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 text-center text-base font-semibold text-slate-100">
+          {current.question}
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {current.options.map((opt, i) => {
+            const isCorrect = opt === current.correct;
+            const isSelected = selectedOpt === opt;
+
+            let style = 'bg-slate-950 border-slate-800 text-slate-200 hover:border-slate-700';
+            if (selectedOpt !== null) {
+              if (isCorrect) style = 'bg-emerald-950/40 border-emerald-500 text-emerald-300 font-bold';
+              else if (isSelected) style = 'bg-rose-950/40 border-rose-500 text-rose-300 font-bold';
+            }
+
+            return (
+              <button
+                key={i}
+                onClick={() => handleChoose(opt)}
+                disabled={selectedOpt !== null}
+                className={`p-4 rounded-xl border text-sm transition text-center ${style}`}
+              >
+                {opt}
+              </button>
+            );
+          })}
+        </div>
+
+        {selectedOpt !== null && (
+          <div className="space-y-4 pt-4 border-t border-slate-800 animate-fadeIn">
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs text-slate-300">
+              <span className="font-bold text-indigo-400 block mb-1">Objašnjenje pravila:</span>
+              {current.explanation}
+            </div>
+
+            <button
+              onClick={handleNext}
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-sm transition flex items-center justify-center gap-2"
+            >
+              <RotateCcw className="w-4 h-4" /> Sljedeće Pitanje
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// MODULE 5: PERSONAL LAB & LESSON MANAGER
+// ==========================================
+function PersonalLabModule({ mistakes, customLab, onAddCustom, onRemoveMistake, onRemoveCustom, speak }) {
+  const [activeSubTab, setActiveSubTab] = useState('mistakes');
+  const [germanText, setGermanText] = useState('');
+  const [translationText, setTranslationText] = useState('');
+  const [noteText, setNoteText] = useState('');
+
+  // Import / Export state
+  const [jsonInput, setJsonInput] = useState('');
+  const [importStatus, setImportStatus] = useState(null);
+
+  const handleAdd = (e) => {
+    e.preventDefault();
+    if (!germanText.trim()) return;
+
+    onAddCustom({
+      id: 'custom_' + Date.now(),
+      german: germanText,
+      translation: translationText,
+      note: noteText,
+      date: new Date().toLocaleDateString()
+    });
+
+    setGermanText('');
+    setTranslationText('');
+    setNoteText('');
+  };
+
+  // Export custom data to JSON
+  const handleExportJSON = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(customLab, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `deutsch_lessons_backup_${Date.now()}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
+  // Import JSON file or raw string
+  const handleImportJSON = () => {
+    try {
+      const parsed = JSON.parse(jsonInput);
+      if (Array.isArray(parsed)) {
+        parsed.forEach(item => {
+          if (item.german) {
+            onAddCustom({
+              id: item.id || 'custom_' + Date.now() + Math.random(),
+              german: item.german,
+              translation: item.translation || '',
+              note: item.note || '',
+              date: item.date || new Date().toLocaleDateString()
+            });
+          }
+        });
+        setImportStatus('✅ Lekcije uspješno uvezene!');
+        setJsonInput('');
+      } else {
+        setImportStatus('❌ Greška: JSON mora biti lista (Array) objekata.');
+      }
+    } catch (err) {
+      setImportStatus('❌ Neispravan JSON format!');
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto flex flex-col gap-6">
+      {/* Sub tabs */}
+      <div className="flex items-center gap-3 border-b border-slate-800 pb-3 overflow-x-auto scrollbar-none">
+        <button
+          onClick={() => setActiveSubTab('mistakes')}
+          className={`text-xs sm:text-sm font-bold px-4 py-2 rounded-xl transition shrink-0 ${
+            activeSubTab === 'mistakes'
+              ? 'bg-indigo-600 text-white'
+              : 'text-slate-400 hover:text-white bg-slate-900/60'
+          }`}
+        >
+          Sačuvane Greške ({mistakes.length})
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('custom')}
+          className={`text-xs sm:text-sm font-bold px-4 py-2 rounded-xl transition shrink-0 ${
+            activeSubTab === 'custom'
+              ? 'bg-indigo-600 text-white'
+              : 'text-slate-400 hover:text-white bg-slate-900/60'
+          }`}
+        >
+          Moje Lične Rečenice & Fraze ({customLab.length})
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('manager')}
+          className={`text-xs sm:text-sm font-bold px-4 py-2 rounded-xl transition shrink-0 flex items-center gap-1.5 ${
+            activeSubTab === 'manager'
+              ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white'
+              : 'text-indigo-400 hover:text-indigo-300 bg-indigo-950/40 border border-indigo-800/40'
+          }`}
+        >
+          <Sparkles className="w-3.5 h-3.5" /> Uvoz / Izvoz Lekcija (JSON)
+        </button>
+      </div>
+
+      {activeSubTab === 'mistakes' && (
+        <div className="space-y-4">
+          {mistakes.length === 0 ? (
+            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 text-sm">
+              Nemaš sačuvanih grešaka! Kad god pogriješiš u Detektoru Grešaka, stavka će automatski stići ovdje.
+            </div>
+          ) : (
+            mistakes.map((item) => (
+              <div key={item.id} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 relative">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
+                    {item.category}
+                  </span>
+                  <button
+                    onClick={() => onRemoveMistake(item.id)}
+                    className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-slate-800 transition"
+                    title="Ukloni"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <p className="text-slate-400 text-xs line-through mb-1">"{item.sentence}"</p>
+                <p className="text-emerald-300 text-sm font-semibold mb-2">"{item.correctSentence}"</p>
+                <p className="text-slate-300 text-xs leading-relaxed bg-slate-950/60 p-3 rounded-xl border border-slate-800/60">
+                  {item.explanation}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {activeSubTab === 'custom' && (
+        <div className="space-y-6">
+          {/* Add custom form */}
+          <form onSubmit={handleAdd} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+            <h4 className="font-bold text-sm text-white flex items-center gap-2">
+              <Plus className="w-4 h-4 text-indigo-400" />
+              Dodaj Novu Riječ ili Rečenicu sa Posla / iz Svakodnevice
+            </h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                  Njemački tekst (izraz / rečenica):
+                </label>
+                <input
+                  type="text"
+                  value={germanText}
+                  onChange={(e) => setGermanText(e.target.value)}
+                  placeholder="npr. Ich möchte mich bezüglich der Stelle erkundigen."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                  Prevod / Značenje:
+                </label>
+                <input
+                  type="text"
+                  value={translationText}
+                  onChange={(e) => setTranslationText(e.target.value)}
+                  placeholder="npr. Želim se raspitati u vezi posla."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                Napomena / Gramatika (opciono):
+              </label>
+              <input
+                type="text"
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                placeholder="npr. erkundigen nach + Dativ / bezüglich + Genitiv"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={!germanText.trim()}
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-xl font-bold text-xs sm:text-sm transition shadow-md flex items-center justify-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> Sačuvaj u Bazu
+            </button>
+          </form>
+
+          {/* List custom items */}
+          <div className="space-y-3">
+            {customLab.length === 0 ? (
+              <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 text-sm">
+                Tvoja lična baza je prazna. Dodaj gore fraze ili izraze koje čuješ na poslu ili u opštini!
+              </div>
+            ) : (
+              customLab.map((item) => (
+                <div key={item.id} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-bold text-sm text-slate-100">{item.german}</span>
+                      <button 
+                        onClick={() => speak(item.german)}
+                        className="text-slate-400 hover:text-white p-1 rounded"
+                      >
+                        <Volume2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    {item.translation && (
+                      <p className="text-xs text-slate-400">{item.translation}</p>
+                    )}
+                    {item.note && (
+                      <span className="inline-block mt-1 text-[10px] bg-slate-950 px-2 py-0.5 rounded text-indigo-400 border border-slate-800">
+                        {item.note}
+                      </span>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => onRemoveCustom(item.id)}
+                    className="p-2 text-slate-500 hover:text-rose-400 rounded-lg hover:bg-slate-800 transition shrink-0"
+                    title="Ukloni"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* JSON MANAGER TAB */}
+      {activeSubTab === 'manager' && (
+        <div className="space-y-6">
+          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+            <h4 className="font-bold text-base text-white flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-indigo-400" />
+              Uvoz i Izvoz Kompletnih Lekcija u JSON Formatu
+            </h4>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Ovdje možeš uvesti pakete novih rečenica i vokabulara ili izvoziti sve rečenice koje si sam unio kako bi napravio sigurnosnu kopiju (backup).
+            </p>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={handleExportJSON}
+                disabled={customLab.length === 0}
+                className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 rounded-xl font-bold text-xs transition border border-slate-700 flex items-center gap-2"
+              >
+                <Bookmark className="w-4 h-4 text-amber-400" /> Izvezi Moje Lekcije (.json)
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+            <h5 className="font-bold text-sm text-white">Uvezi Nove Lekcije (Nalijepi JSON Kod)</h5>
+            
+            <textarea
+              rows={6}
+              value={jsonInput}
+              onChange={(e) => setJsonInput(e.target.value)}
+              placeholder={`[\n  {\n    "german": "Der Server ist vorübergehend außer Betrieb.",\n    "translation": "Server je privremeno van funkcije.",\n    "note": "IT / Systemadministration"\n  }\n]`}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-100 text-xs font-mono focus:outline-none focus:border-indigo-500 resize-none"
+            />
+
+            {importStatus && (
+              <p className="text-xs font-bold text-indigo-300">{importStatus}</p>
+            )}
+
+            <button
+              onClick={handleImportJSON}
+              disabled={!jsonInput.trim()}
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-xl font-bold text-xs sm:text-sm transition"
+            >
+              Uvezi Lekcije u Bazu
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==========================================
+// MAIN APP COMPONENT
+// ==========================================
+export default function App() {
+  const [activeTab, setActiveTab] = useState('writing');
+  const [selectedTopic, setSelectedTopic] = useState('All');
+  
+  // Stats
+  const [stats, setStats] = useState(() => {
+    const saved = localStorage.getItem('de_meister_stats');
+    return saved ? JSON.parse(saved) : { xp: 120, streak: 3, completed: 14 };
+  });
+
+  // Saved Errors
+  const [mistakes, setMistakes] = useState(() => {
+    const saved = localStorage.getItem('de_meister_mistakes');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Custom Phrases
+  const [customLab, setCustomLab] = useState(() => {
+    const saved = localStorage.getItem('de_meister_custom');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('de_meister_stats', JSON.stringify(stats));
+  }, [stats]);
+
+  useEffect(() => {
+    localStorage.setItem('de_meister_mistakes', JSON.stringify(mistakes));
+  }, [mistakes]);
+
+  useEffect(() => {
+    localStorage.setItem('de_meister_custom', JSON.stringify(customLab));
+  }, [customLab]);
+
+  // Audio Speech synthesis
+  const speak = (text) => {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'de-DE';
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleExerciseComplete = (isCorrect) => {
+    setStats(prev => ({
+      ...prev,
+      xp: prev.xp + (isCorrect ? 15 : 5),
+      completed: prev.completed + 1
+    }));
+  };
+
+  const handleAddMistake = (item) => {
+    setMistakes(prev => {
+      if (prev.some(m => m.id === item.id)) return prev;
+      return [item, ...prev];
+    });
+  };
+
+  const handleRemoveMistake = (id) => {
+    setMistakes(prev => prev.filter(m => m.id !== id));
+  };
+
+  const handleAddCustom = (newItem) => {
+    setCustomLab(prev => [newItem, ...prev]);
+  };
+
+  const handleRemoveCustom = (id) => {
+    setCustomLab(prev => prev.filter(c => c.id !== id));
+  };
+
+  // Filter dataset based on selected topic
+  const filterByTopic = (list) => {
+    if (selectedTopic === 'All') return list;
+    return list.filter(item => item.topic === selectedTopic);
+  };
+
+  const filteredWriting = filterByTopic(INITIAL_DATASET.writing);
+  const filteredErrors = filterByTopic(INITIAL_DATASET.errors);
+  const filteredVocabulary = filterByTopic(INITIAL_DATASET.vocabulary);
+  const filteredGrammar = filterByTopic(INITIAL_DATASET.grammarDrill);
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased pb-12">
+      {/* TOP HEADER / NAVBAR */}
+      <header className="border-b border-slate-800 bg-slate-900/60 sticky top-0 z-50 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+              <Brain className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-base sm:text-lg font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-100 to-slate-400">
+                Deutsch Studio B1/B2
+              </h1>
+              <p className="text-[10px] text-indigo-400 font-semibold tracking-wider uppercase">
+                Writing & Vocabulary Mastery • IT & Admin Focus
+              </p>
+            </div>
+          </div>
+
+          {/* Gamification Stats */}
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-950/80 rounded-xl border border-slate-800 text-xs font-bold text-amber-400">
+              <Flame className="w-4 h-4 text-amber-500 fill-amber-500" />
+              <span>{stats.streak} Days</span>
+            </div>
+
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-950/80 rounded-xl border border-slate-800 text-xs font-bold text-indigo-400">
+              <Trophy className="w-4 h-4 text-indigo-400" />
+              <span>{stats.xp} XP</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* TOPIC FILTER BAR */}
+      <div className="bg-slate-900/40 border-b border-slate-800/60 py-2.5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center gap-2">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider shrink-0 mr-2">
+            <Filter className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Kategorija:</span>
+          </div>
+
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-1">
+            {ALL_TOPICS.map(t => {
+              const Icon = t.icon;
+              const isSelected = selectedTopic === t.id;
+              const isIT = t.id.includes('IT');
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setSelectedTopic(t.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium shrink-0 transition ${
+                    isSelected
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                      : isIT
+                      ? 'bg-slate-900 text-indigo-300 border border-indigo-500/30 hover:bg-slate-800'
+                      : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-800'
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isIT && !isSelected ? 'text-indigo-400' : ''}`} />
+                  <span>{t.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN NAVIGATION TABS */}
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800">
+          <button
+            onClick={() => setActiveTab('writing')}
+            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition ${
+              activeTab === 'writing'
+                ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <PenTool className="w-4 h-4" /> Pisanje & Style
+          </button>
+
+          <button
+            onClick={() => setActiveTab('error')}
+            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition ${
+              activeTab === 'error'
+                ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <AlertTriangle className="w-4 h-4" /> Detektor Grešaka
+          </button>
+
+          <button
+            onClick={() => setActiveTab('vocab')}
+            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition ${
+              activeTab === 'vocab'
+                ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" /> Vokabular B1 &rarr; B2
+          </button>
+
+          <button
+            onClick={() => setActiveTab('grammar')}
+            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition ${
+              activeTab === 'grammar'
+                ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <Sparkles className="w-4 h-4" /> Gramatika Drill
+          </button>
+
+          <button
+            onClick={() => setActiveTab('lab')}
+            className={`col-span-2 sm:col-span-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition ${
+              activeTab === 'lab'
+                ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <Bookmark className="w-4 h-4" /> Moja Baza ({mistakes.length + customLab.length})
+          </button>
+        </div>
+      </nav>
+
+      {/* MODULE CONTAINER */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-2">
+        {activeTab === 'writing' && (
+          <WritingModule 
+            exercises={filteredWriting} 
+            onComplete={(isCorrect) => handleExerciseComplete(isCorrect)} 
+            speak={speak} 
+            selectedTopic={selectedTopic}
+            setSelectedTopic={setSelectedTopic}
+          />
+        )}
+
+        {activeTab === 'error' && (
+          <ErrorDetectorModule 
+            exercises={filteredErrors} 
+            onAnswer={(isCorrect, item) => {
+              handleExerciseComplete(isCorrect);
+              if (!isCorrect && !item.isCorrect) {
+                handleAddMistake(item);
+              }
+            }} 
+            speak={speak} 
+          />
+        )}
+
+        {activeTab === 'vocab' && (
+          <VocabularyModule 
+            items={filteredVocabulary} 
+            onComplete={(isCorrect) => handleExerciseComplete(isCorrect)} 
+            speak={speak} 
+          />
+        )}
+
+        {activeTab === 'grammar' && (
+          <GrammarDrillModule 
+            drills={filteredGrammar} 
+            onComplete={(isCorrect) => handleExerciseComplete(isCorrect)} 
+          />
+        )}
+
+        {activeTab === 'lab' && (
+          <PersonalLabModule 
+            mistakes={mistakes} 
+            customLab={customLab} 
+            onAddCustom={handleAddCustom} 
+            onRemoveMistake={handleRemoveMistake} 
+            onRemoveCustom={handleRemoveCustom} 
+            speak={speak} 
+          />
+        )}
+      </main>
+    </div>
+  );
+}
