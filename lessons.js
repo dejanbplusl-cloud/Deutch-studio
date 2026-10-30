@@ -1,0 +1,558 @@
+window.EXTRA_LESSONS = {
+  writing: [
+    {
+      id: 'w_pack1_1',
+      topic: 'IT & Systemverwaltung',
+      scenario: 'Firewall-Regeln Aktualisierung (Ažuriranje pravila na Firewall-u)',
+      prompt: 'Napiši obavještenje mrežnom timu da će večeras u 23:00 sata biti primijenjena nova sigurnosna pravila na Firewall-u i da prijave eventualne prekide u saobraćaju.',
+      placeholder: 'Hallo Team...',
+      answerB1: 'Hallo Team, heute um 23 Uhr ändern wir die Firewall-Regeln. Bitte sagen Sie mir, wenn etwas nicht geht.',
+      answerB2: 'Hallo zusammen, heute um 23:00 Uhr werden neue Firewall-Regeln eingespielt. Sollte es dadurch zu unerwarteten Verbindungsproblemen kommen, bitten wir um umgehende Rückmeldung.',
+      keywords: ['eingespielt', 'Verbindungsprobleme', 'umgehende Rückmeldung'],
+      tips: ['Za brzu prijavu/povratnu informaciju koristi "umgehende Rückmeldung".']
+    },
+    {
+      id: 'w_pack1_2',
+      topic: 'IT-Support & Helpdesk',
+      scenario: 'Passwort-Zurücksetzung (Resetovanje lozinke)',
+      prompt: 'Odgovori korisniku koji je zaboravio lozinku i objasni mu da je privremena lozinka poslata na njegov službeni SMS.',
+      placeholder: 'Guten Tag...',
+      answerB1: 'Guten Tag, ich habe Ihr Passwort geändert. Sie bekommen eine SMS mit dem neuen Passwort.',
+      answerB2: 'Guten Tag, Ihr Passwort wurde erfolgreich zurückgesetzt. Ein vorläufiges Kennwort wurde Ihnen per SMS an Ihre hinterlegte Mobilnummer gesendet.',
+      keywords: ['zurückgesetzt', 'vorläufiges Kennwort', 'hinterlegte Mobilnummer'],
+      tips: ['Lozinka se formalno zove "das Kennwort" ili "das Passwort". Privremena lozinka je "vorläufiges Kennwort".']
+    }
+  ],
+
+  errors: [
+    {
+      id: 'e_pack1_1',
+      topic: 'IT & Systemverwaltung',
+      sentence: 'Trotz des schnellen Servers, die Datenbank reagiert sehr langsam.',
+      isCorrect: false,
+      correctSentence: 'Trotz des schnellen Servers reagiert die Datenbank sehr langsam.',
+      explanation: 'Nakon predloga i imenice u Genitivu ("Trotz des schnellen Servers") glagol u glavnoj rečenici MORA doći odmah na prvo mjesto (Inversion: reagiert die Datenbank).',
+      category: 'Wortstellung (Inversion)'
+    }
+  ],
+
+  vocabulary: [
+    {
+      id: 'v_pack1_1',
+      topic: 'IT & Systemverwaltung',
+      basic: 'Server ausmachen',
+      context: 'Wir müssen den Server vor dem Update ausmachen.',
+      options: ['herunterfahren', 'ausmachen tun', 'wegschalten', 'stoppen lassen'],
+      correctOption: 'herunterfahren',
+      redemittel: 'einen Server ordnungsgemäß herunterfahren / ausschalten',
+      example: 'Der Datenbankserver muss vor der Wartung ordnungsgemäß heruntergefahren werden.'
+    }
+  ]
+};
+```
+5. Klikni na **"Commit changes..."**.
+
+---
+
+### Korak 2: Poveži `lessons.js` u `index.html`
+
+Sada samo dodamo jednu liniju u `index.html` da uvozi `lessons.js` i spaja te lekcije sa postojećim.
+
+Otvori **`index.html`** na GitHub-u, klikni na **Edit (olovku)** i zamijeni ga ovim ažuriranim kodom:
+
+```html:Deutsch Studio B1/B2 (Dynamic Dataset):index.html
+<!-- ... existing code ... -->
+    <!-- React & React DOM CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel standalone za JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Vanjski fajl sa lekcijama -->
+    <script src="./lessons.js"></script>
+    <style>
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn { animation: fadeIn 0.25s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased">
+    <div id="root"></div>
+
+    <!-- React Aplikativni Kod -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- ICON COMPONENT HELPER FOR LUCIDE SVG ---
+        const Icon = ({ name, className = "w-4 h-4", ...props }) => {
+            return <i data-lucide={name} className={className} {...props}></i>;
+        };
+
+        // --- BAZA PODATAKA (AUTOMATSKO SPAJANJE SA lessons.js) ---
+        const BASE_DATASET = {
+            writing: [
+                {
+                    id: 'w_it1',
+                    topic: 'IT & Systemverwaltung',
+                    scenario: 'Ankündigung einer Serverwartung (Održavanje servera)',
+                    prompt: 'Napiši obavještenje zaposlenima da će u petak od 22:00 do subote u 04:00 sata primarni serveri biti nedostupni zbog planiranog održavanja i ažuriranja sistema.',
+                    placeholder: 'Sehr geehrte Kolleginnen und Kollegen...',
+                    answerB1: 'Hallo zusammen, am Freitag von 22 Uhr bis Samstag 4 Uhr machen wir Serverwartung. Die Server funktionieren dann nicht. Bitte speichern Sie Ihre Daten.',
+                    answerB2: 'Sehr geehrte Kolleginnen und Kollegen, wir möchten Sie darüber informieren, dass am Freitag ab 22:00 Uhr geplante Wartungsarbeiten an unserer Serverinfrastruktur stattfinden. In diesem Zeitraum stehen die zentralen Dienste nicht zur Verfügung. Wir bitten Sie, Ihre Arbeiten rechtzeitig zu speichern.',
+                    keywords: ['informieren', 'Wartungsarbeiten', 'Serverinfrastruktur', 'Zeitraum', 'zur Verfügung', 'speichern'],
+                    tips: ['Nominalni stil: "geplante Wartungsarbeiten finden statt".', 'B2 izraz za sistem u prekidu: "steht nicht zur Verfügung".']
+                }
+            ],
+            errors: [
+                {
+                    id: 'e_it1',
+                    topic: 'IT & Systemverwaltung',
+                    sentence: 'Der Administrator hat das neue Firewall-Update gestern installiert werden.',
+                    isCorrect: false,
+                    correctSentence: 'Der Administrator hat das neue Firewall-Update gestern installiert.',
+                    explanation: 'Aktivna prošlost (Perfekt): hat + Partizip II (installiert). Dodavanje "werden" pravi grešku.',
+                    category: 'Aktiv vs. Passiv'
+                }
+            ],
+            vocabulary: [
+                {
+                    id: 'v_it1',
+                    topic: 'IT & Systemverwaltung',
+                    basic: 'neue Software aufspielen',
+                    context: 'Wir müssen die neue Software auf den Servern installieren.',
+                    options: ['bereitstellen', 'hochmachen', 'einsetzen tun', 'abstellen'],
+                    correctOption: 'bereitstellen',
+                    redemittel: 'eine Anwendung im Netzwerk bereitstellen / ausrollen',
+                    example: 'Das Update wurde erfolgreich im gesamten Unternehmensnetzwerk bereitgestellt.'
+                }
+            ],
+            grammarDrill: [
+                {
+                    id: 'g_it1',
+                    topic: 'IT & Systemverwaltung',
+                    question: 'Die Daten werden automatisch jeden Abend auf ein externes Laufwerk _____.',
+                    options: ['gesichert', 'sichern', 'gesichert werden', 'sicherte'],
+                    correct: 'gesichert',
+                    explanation: 'Sadašnji pasiv (Präsens Passiv): werden + Partizip II (gesichert).'
+                }
+            ]
+        };
+
+        // Automatsko spajanje osnovne baze sa lekcijama iz lessons.js
+        const extra = window.EXTRA_LESSONS || {};
+        const INITIAL_DATASET = {
+            writing: [...BASE_DATASET.writing, ...(extra.writing || [])],
+            errors: [...BASE_DATASET.errors, ...(extra.errors || [])],
+            vocabulary: [...BASE_DATASET.vocabulary, ...(extra.vocabulary || [])],
+            grammarDrill: [...BASE_DATASET.grammarDrill, ...(extra.grammarDrill || [])]
+        };
+
+        const ALL_TOPICS = [
+            { id: 'All', label: 'Sve Teme (Alle)', icon: 'layers' },
+            { id: 'IT & Systemverwaltung', label: 'IT & Systemadmin', icon: 'server' },
+            { id: 'IT-Support & Helpdesk', label: 'IT-Support & Helpdesk', icon: 'cpu' },
+            { id: 'Beruf', label: 'Posao & Arbeit', icon: 'briefcase' },
+            { id: 'Amt & Behörden', label: 'Amt & Administracija', icon: 'building-2' },
+            { id: 'Wohnen & Miete', label: 'Wohnen & Stanovanje', icon: 'home' }
+        ];
+
+        // --- FULL MULTI-MODULE APP COMPONENT ---
+        function App() {
+            const [activeTab, setActiveTab] = useState('writing');
+            const [selectedTopic, setSelectedTopic] = useState('All');
+            const [writingIndex, setWritingIndex] = useState(0);
+            const [errorIndex, setErrorIndex] = useState(0);
+            const [vocabIndex, setVocabIndex] = useState(0);
+            const [grammarIndex, setGrammarIndex] = useState(0);
+
+            const [userInput, setUserInput] = useState('');
+            const [showAnswers, setShowAnswers] = useState(false);
+            const [selectedChoice, setSelectedChoice] = useState(null);
+            const [hasSubmitted, setHasSubmitted] = useState(false);
+            const [vocabAnswer, setVocabAnswer] = useState(null);
+            const [grammarAnswer, setGrammarAnswer] = useState(null);
+
+            const [stats, setStats] = useState(() => {
+                const saved = localStorage.getItem('de_meister_stats');
+                return saved ? JSON.parse(saved) : { xp: 150, streak: 4, completed: 22 };
+            });
+
+            const [customLab, setCustomLab] = useState(() => {
+                const saved = localStorage.getItem('de_meister_custom');
+                return saved ? JSON.parse(saved) : [];
+            });
+            const [newGerman, setNewGerman] = useState('');
+            const [newTrans, setNewTrans] = useState('');
+
+            useEffect(() => {
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }, [activeTab, selectedTopic, showAnswers, hasSubmitted, vocabAnswer, grammarAnswer, writingIndex, errorIndex, vocabIndex, grammarIndex, customLab]);
+
+            useEffect(() => {
+                localStorage.setItem('de_meister_custom', JSON.stringify(customLab));
+            }, [customLab]);
+
+            const speak = (text) => {
+                if (!('speechSynthesis' in window)) return;
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'de-DE';
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            };
+
+            const filterByTopic = (list) => {
+                if (selectedTopic === 'All') return list;
+                return list.filter(item => item.topic === selectedTopic);
+            };
+
+            const filteredWriting = filterByTopic(INITIAL_DATASET.writing);
+            const filteredErrors = filterByTopic(INITIAL_DATASET.errors);
+            const filteredVocab = filterByTopic(INITIAL_DATASET.vocabulary);
+            const filteredGrammar = filterByTopic(INITIAL_DATASET.grammarDrill);
+
+            const currentWriting = filteredWriting[writingIndex % (filteredWriting.length || 1)] || INITIAL_DATASET.writing[0];
+            const currentError = filteredErrors[errorIndex % (filteredErrors.length || 1)] || INITIAL_DATASET.errors[0];
+            const currentVocab = filteredVocab[vocabIndex % (filteredVocab.length || 1)] || INITIAL_DATASET.vocabulary[0];
+            const currentGrammar = filteredGrammar[grammarIndex % (filteredGrammar.length || 1)] || INITIAL_DATASET.grammarDrill[0];
+
+            const addCustom = (e) => {
+                e.preventDefault();
+                if (!newGerman.trim()) return;
+                setCustomLab([{ id: Date.now(), german: newGerman, translation: newTrans, date: new Date().toLocaleDateString() }, ...customLab]);
+                setNewGerman('');
+                setNewTrans('');
+            };
+
+            return (
+                <div className="min-h-screen pb-12">
+                    {/* Header */}
+                    <header className="border-b border-slate-800 bg-slate-900/60 sticky top-0 z-50 backdrop-blur-md">
+                        <div className="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold text-xl">
+                                    D
+                                </div>
+                                <div>
+                                    <h1 className="text-base font-extrabold text-white">Deutsch Studio B1/B2</h1>
+                                    <p className="text-[10px] text-indigo-400 font-semibold tracking-wider uppercase">Profi Master Edition (Ukupno lekcija: {INITIAL_DATASET.writing.length + INITIAL_DATASET.errors.length + INITIAL_DATASET.vocabulary.length + INITIAL_DATASET.grammarDrill.length})</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <div className="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-amber-400 font-bold">
+                                    🔥 {stats.streak} Tage
+                                </div>
+                                <div className="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-indigo-400 font-bold">
+                                    🏆 {stats.xp} XP
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Filter Bar */}
+                    <div className="bg-slate-900/40 border-b border-slate-800/60 py-2.5 mb-6">
+                        <div className="max-w-7xl mx-auto px-4 flex items-center gap-2 overflow-x-auto scrollbar-none">
+                            {ALL_TOPICS.map(t => (
+                                <button
+                                    key={t.id}
+                                    onClick={() => { setSelectedTopic(t.id); setWritingIndex(0); setErrorIndex(0); setVocabIndex(0); setGrammarIndex(0); }}
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-medium shrink-0 transition flex items-center gap-2 ${
+                                        selectedTopic === t.id
+                                            ? 'bg-indigo-600 text-white font-bold'
+                                            : 'bg-slate-900 text-slate-400 hover:bg-slate-800'
+                                    }`}
+                                >
+                                    <Icon name={t.icon} className="w-3.5 h-3.5" />
+                                    <span>{t.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Navigation Tabs */}
+                    <nav className="max-w-7xl mx-auto px-4 mb-6">
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800">
+                            {[
+                                { id: 'writing', label: 'Pisanje & Style', icon: 'pen-tool' },
+                                { id: 'error', label: 'Detektor Grešaka', icon: 'alert-triangle' },
+                                { id: 'vocab', label: 'Vokabular B1->B2', icon: 'book-open' },
+                                { id: 'grammar', label: 'Gramatika Drill', icon: 'sparkles' },
+                                { id: 'lab', label: 'Moja Baza', icon: 'bookmark' }
+                            ].map(tab => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => { setActiveTab(tab.id); setShowAnswers(false); setHasSubmitted(false); setVocabAnswer(null); setGrammarAnswer(null); }}
+                                    className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition ${
+                                        activeTab === tab.id
+                                            ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md'
+                                            : 'text-slate-400 hover:text-white'
+                                    }`}
+                                >
+                                    <Icon name={tab.icon} className="w-4 h-4" />
+                                    <span>{tab.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </nav>
+
+                    {/* Main Content Area */}
+                    <main className="max-w-4xl mx-auto px-4">
+                        {/* TAB 1: WRITING */}
+                        {activeTab === 'writing' && currentWriting && (
+                            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4">
+                                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                                    <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 text-xs font-semibold rounded-full border border-indigo-500/20">
+                                        {currentWriting.topic}
+                                    </span>
+                                    <button 
+                                        onClick={() => setWritingIndex(writingIndex + 1)}
+                                        className="text-xs text-indigo-400 hover:underline font-bold">
+                                        Sljedeća vježba ({writingIndex + 1}/{filteredWriting.length || 1}) &rarr;
+                                    </button>
+                                </div>
+
+                                <h3 className="text-slate-100 font-bold text-base">{currentWriting.scenario}</h3>
+                                <p className="text-slate-300 text-sm bg-slate-950/60 p-4 rounded-xl border border-slate-800">{currentWriting.prompt}</p>
+
+                                <textarea
+                                    rows={4}
+                                    value={userInput}
+                                    onChange={(e) => setUserInput(e.target.value)}
+                                    placeholder={currentWriting.placeholder}
+                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 transition resize-none"
+                                />
+
+                                <button
+                                    onClick={() => setShowAnswers(!showAnswers)}
+                                    disabled={!userInput.trim()}
+                                    className="w-full py-3 bg-gradient-to-r from-indigo-600 to-violet-600 disabled:opacity-40 text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-600/20"
+                                >
+                                    {showAnswers ? 'Sakrij Rešenja' : 'Provjeri i Uporedi Rešenja'}
+                                </button>
+
+                                {showAnswers && (
+                                    <div className="space-y-4 pt-4 border-t border-slate-800 animate-fadeIn">
+                                        <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="text-xs font-bold text-amber-400 uppercase">Standardna B1 Varijanta:</span>
+                                                <button onClick={() => speak(currentWriting.answerB1)} className="text-xs text-slate-400">🔊 Izgovor</button>
+                                            </div>
+                                            <p className="text-slate-300 text-xs italic">"{currentWriting.answerB1}"</p>
+                                        </div>
+
+                                        <div className="bg-emerald-950/20 border border-emerald-500/30 rounded-2xl p-4">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="text-xs font-bold text-emerald-400 uppercase">Poslovna B2 Varijanta:</span>
+                                                <button onClick={() => speak(currentWriting.answerB2)} className="text-xs text-slate-400">🔊 Izgovor</button>
+                                            </div>
+                                            <p className="text-slate-100 text-xs font-medium italic mb-2">"{currentWriting.answerB2}"</p>
+                                            {currentWriting.tips && (
+                                                <div className="pt-2 border-t border-emerald-500/20 space-y-1">
+                                                    {currentWriting.tips.map((tip, i) => (
+                                                        <p key={i} className="text-xs text-slate-300">💡 {tip}</p>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* TAB 2: ERROR DETECTOR */}
+                        {activeTab === 'error' && currentError && (
+                            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4">
+                                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                                    <span className="px-3 py-1 bg-violet-500/10 text-violet-400 text-xs font-semibold rounded-full border border-violet-500/20">
+                                        {currentError.category}
+                                    </span>
+                                    <button 
+                                        onClick={() => { setErrorIndex(errorIndex + 1); setHasSubmitted(false); setSelectedChoice(null); }}
+                                        className="text-xs text-indigo-400 hover:underline font-bold">
+                                        Sljedeći primjer ({errorIndex + 1}/{filteredErrors.length || 1}) &rarr;
+                                    </button>
+                                </div>
+
+                                <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 text-center text-sm font-mono text-slate-100">
+                                    "{currentError.sentence}"
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button
+                                        onClick={() => setSelectedChoice(true)}
+                                        className={`p-4 rounded-xl border font-bold text-xs transition ${selectedChoice === true ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' : 'bg-slate-950 border-slate-800 text-slate-400'}`}
+                                    >
+                                        Tačno (Richtig)
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedChoice(false)}
+                                        className={`p-4 rounded-xl border font-bold text-xs transition ${selectedChoice === false ? 'bg-rose-500/20 border-rose-500 text-rose-300' : 'bg-slate-950 border-slate-800 text-slate-400'}`}
+                                    >
+                                        Netačno (Falsch)
+                                    </button>
+                                </div>
+
+                                <button
+                                    onClick={() => setHasSubmitted(true)}
+                                    disabled={selectedChoice === null}
+                                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-xl font-bold text-xs"
+                                >
+                                    Potvrdi Odgovor
+                                </button>
+
+                                {hasSubmitted && (
+                                    <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-2 animate-fadeIn">
+                                        <p className="font-bold">{selectedChoice === currentError.isCorrect ? '✅ Tačna procjena!' : '❌ Pogrešna procjena!'}</p>
+                                        <p className="text-slate-300 leading-relaxed">{currentError.explanation}</p>
+                                        {!currentError.isCorrect && (
+                                            <p className="text-emerald-300 font-semibold font-mono">Ispravno: "{currentError.correctSentence}"</p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* TAB 3: VOCABULARY */}
+                        {activeTab === 'vocab' && currentVocab && (
+                            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4">
+                                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                                    <span className="text-xs font-bold text-indigo-400">Vokabular Vježba ({vocabIndex + 1}/{filteredVocab.length || 1})</span>
+                                    <button 
+                                        onClick={() => { setVocabIndex(vocabIndex + 1); setVocabAnswer(null); }}
+                                        className="text-xs text-indigo-400 hover:underline font-bold">
+                                        Sljedeći izraz &rarr;
+                                    </button>
+                                </div>
+
+                                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                                    <span className="text-[10px] text-slate-500 uppercase block mb-1">B1 Osnovna Riječ:</span>
+                                    <span className="text-lg font-bold text-amber-400">{currentVocab.basic}</span>
+                                    <p className="text-xs text-slate-400 mt-1 italic">"{currentVocab.context}"</p>
+                                </div>
+
+                                <p className="text-xs font-bold text-slate-300 uppercase">Izaberi naprednu B2 alternativu:</p>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {currentVocab.options.map((opt, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setVocabAnswer(opt)}
+                                            className={`p-3.5 rounded-xl border text-left text-xs font-semibold transition ${vocabAnswer === opt ? (opt === currentVocab.correctOption ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 font-bold' : 'bg-rose-500/20 border-rose-500 text-rose-300 font-bold') : 'bg-slate-950 border-slate-800 text-slate-300'}`}
+                                        >
+                                            {opt}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {vocabAnswer && (
+                                    <div className="bg-slate-950 p-4 rounded-xl border border-indigo-500/30 text-xs space-y-1 animate-fadeIn">
+                                        <span className="font-bold text-indigo-400 uppercase block">Fiksna B2 Fraza:</span>
+                                        <p className="text-slate-200 font-mono">{currentVocab.redemittel}</p>
+                                        <p className="text-slate-400 italic">Primjer: "{currentVocab.example}"</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* TAB 4: GRAMMAR DRILL */}
+                        {activeTab === 'grammar' && currentGrammar && (
+                            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4">
+                                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                                    <span className="text-xs font-bold text-indigo-400">Gramatika Drill ({grammarIndex + 1}/{filteredGrammar.length || 1})</span>
+                                    <button 
+                                        onClick={() => { setGrammarIndex(grammarIndex + 1); setGrammarAnswer(null); }}
+                                        className="text-xs text-indigo-400 hover:underline font-bold">
+                                        Sljedeća rečenica &rarr;
+                                    </button>
+                                </div>
+
+                                <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 text-center text-sm font-semibold">
+                                    {currentGrammar.question}
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    {currentGrammar.options.map((opt, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setGrammarAnswer(opt)}
+                                            className={`p-3.5 rounded-xl border text-center text-xs font-semibold transition ${grammarAnswer === opt ? (opt === currentGrammar.correct ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 font-bold' : 'bg-rose-500/20 border-rose-500 text-rose-300 font-bold') : 'bg-slate-950 border-slate-800 text-slate-300'}`}
+                                        >
+                                            {opt}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {grammarAnswer && (
+                                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs text-slate-300 animate-fadeIn">
+                                        <span className="font-bold text-indigo-400 block mb-1">Objašnjenje pravila:</span>
+                                        {currentGrammar.explanation}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* TAB 5: MY LAB / MOJA BAZA */}
+                        {activeTab === 'lab' && (
+                            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 shadow-xl space-y-5">
+                                <form onSubmit={addCustom} className="space-y-3 bg-slate-950 p-4 rounded-xl border border-slate-800">
+                                    <h3 className="text-xs font-bold text-white uppercase">Dodaj Novu Riječ ili Rečenicu:</h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <input
+                                            type="text"
+                                            value={newGerman}
+                                            onChange={(e) => setNewGerman(e.target.value)}
+                                            placeholder="Njemački tekst (npr. Zugriff gewähren)"
+                                            className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={newTrans}
+                                            onChange={(e) => setNewTrans(e.target.value)}
+                                            placeholder="Prevod / Značenje"
+                                            className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500"
+                                        />
+                                    </div>
+                                    <button type="submit" disabled={!newGerman.trim()} className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white font-bold py-2 rounded-xl text-xs transition">
+                                        Sačuvaj u Bazu
+                                    </button>
+                                </form>
+
+                                <div className="space-y-2">
+                                    {customLab.length === 0 ? (
+                                        <p className="text-xs text-slate-500 text-center py-6">Tvoja baza je prazna. Dodaj prvu frazu iznad!</p>
+                                    ) : (
+                                        customLab.map((item) => (
+                                            <div key={item.id} className="bg-slate-950 border border-slate-800 p-3 rounded-xl flex justify-between items-center">
+                                                <div>
+                                                    <p className="text-xs font-bold text-slate-100">{item.german}</p>
+                                                    {item.translation && <p className="text-[11px] text-slate-400">{item.translation}</p>}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <button onClick={() => speak(item.german)} className="text-xs text-slate-400 hover:text-white">🔊</button>
+                                                    <button onClick={() => setCustomLab(customLab.filter(c => c.id !== item.id))} className="text-xs text-red-400">✕</button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </main>
+                </div>
+            );
+        }
+
+        // Render Aplikacije
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
