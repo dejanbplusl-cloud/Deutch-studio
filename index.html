@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deutsch Studio B1/B2 - Intensive Mastery & Writing Coach</title>
+    <title>Deutsch Studio B1/B2 - Intensive Mastery</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -12,9 +12,7 @@
             theme: {
                 extend: {
                     colors: {
-                        slate: {
-                            950: '#020617'
-                        }
+                        slate: { 950: '#020617' }
                     }
                 }
             }
@@ -27,6 +25,8 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Vanjski fajl sa lekcijama -->
+    <script src="./lessons.js"></script>
     <style>
         .scrollbar-none::-webkit-scrollbar { display: none; }
         .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
@@ -44,82 +44,23 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- ICON COMPONENT HELPER FOR LUCIDE SVG ---
         const Icon = ({ name, className = "w-4 h-4", ...props }) => {
             return <i data-lucide={name} className={className} {...props}></i>;
         };
 
-        // --- COMPLETE RICH EXPANDED B1/B2 DATASET WITH IT & ALL TOPICS ---
-        const INITIAL_DATASET = {
+        // --- BASE BAZA + AUTOMATSKO UČITAVANJE IZ lessons.js ---
+        const BASE_DATASET = {
             writing: [
                 {
                     id: 'w_it1',
                     topic: 'IT & Systemverwaltung',
-                    scenario: 'Ankündigung einer Serverwartung (Planirano održavanje servera)',
+                    scenario: 'Ankündigung einer Serverwartung (Održavanje servera)',
                     prompt: 'Napiši obavještenje zaposlenima da će u petak od 22:00 do subote u 04:00 sata primarni serveri biti nedostupni zbog planiranog održavanja i ažuriranja sistema.',
                     placeholder: 'Sehr geehrte Kolleginnen und Kollegen...',
                     answerB1: 'Hallo zusammen, am Freitag von 22 Uhr bis Samstag 4 Uhr machen wir Serverwartung. Die Server funktionieren dann nicht. Bitte speichern Sie Ihre Daten.',
                     answerB2: 'Sehr geehrte Kolleginnen und Kollegen, wir möchten Sie darüber informieren, dass am Freitag ab 22:00 Uhr geplante Wartungsarbeiten an unserer Serverinfrastruktur stattfinden. In diesem Zeitraum stehen die zentralen Dienste nicht zur Verfügung. Wir bitten Sie, Ihre Arbeiten rechtzeitig zu speichern.',
                     keywords: ['informieren', 'Wartungsarbeiten', 'Serverinfrastruktur', 'Zeitraum', 'zur Verfügung', 'speichern'],
-                    tips: [
-                        'U IT okruženju umjesto "wir machen Wartung" koristi nominalni stil: "geplante Wartungsarbeiten finden statt".',
-                        'Za sistem koji ne radi B2 izraz je: "steht nicht zur Verfügung" ili "ist vorübergehend außer Betrieb".'
-                    ]
-                },
-                {
-                    id: 'w_it2',
-                    topic: 'IT-Support & Helpdesk',
-                    scenario: 'Rückmeldung zu einem Ticket (Netzwerkstörung / Odgovor na ticket)',
-                    prompt: 'Napiši odgovor korisniku koji je prijavio problem sa VPN pristupom i mrežom. Obavijesti ga da je problem lociran i da je mrežni tim već otklonio grešku.',
-                    placeholder: 'Hallo Herr/Frau...',
-                    answerB1: 'Hallo Herr Schulze, das Problem mit dem VPN ist gelöst. Unser Team hat den Fehler repariert. Sie können sich wieder anmelden.',
-                    answerB2: 'Hallo Herr Schulze, vielen Dank für Ihre Meldung. Die Netzwerkstörung im Zusammenhang mit dem VPN-Zugang konnte erfolgreich lokalisiert und durch unser IT-Team behoben werden. Der Zugriff sollte ab sofort wieder einwandfrei funktionieren.',
-                    keywords: ['Meldung', 'Netzwerkstörung', 'lokalisiert', 'behoben', 'Zugriff', 'einwandfrei'],
-                    tips: [
-                        'Za grešku/problem u IT-u koristi se glagol "beheben" (einen Fehler/eine Störung beheben), a ne "reparieren".',
-                        'Pristup sistemu se naziva "der Zugriff" (der Zugriff auf das System).'
-                    ]
-                },
-                {
-                    id: 'w_it3',
-                    topic: 'IT & Systemverwaltung',
-                    scenario: 'Sicherheitswarnung / Phishing-Mail (Upozorenje o bezbjednosti)',
-                    prompt: 'Napiši kratko upozorenje kolegama o sumnjivim e-mailovima koji kruže u firmi i zamoli ih da ne klikću na linkove niti otvaraju priloge.',
-                    placeholder: 'Achtung an alle Mitarbeiter...',
-                    answerB1: 'Achtung! Es gibt gefälschte E-Mails in der Firma. Bitte klicken Sie nicht auf die Links und öffnen Sie keine Dateien.',
-                    answerB2: 'Liebe Kolleginnen und Kollegen, aktuell sind verdächtige Phishing-E-Mails in Umlauf. Wir bitten Sie dringend, keine verdächtigen Links anzuklicken und keine Dateianhänge von unbekannten Absendern zu öffnen.',
-                    keywords: ['aktuell', 'verdächtige', 'in Umlauf', 'dringend', 'Dateianhänge', 'Absender'],
-                    tips: [
-                        'Prilog e-maila je "der Dateianhang" (mn. die Dateianhänge).',
-                        'Za e-mailove koji se šire koristi se fraza "in Umlauf sein".'
-                    ]
-                },
-                {
-                    id: 'w1',
-                    topic: 'Beruf',
-                    scenario: 'Krankmeldung beim Arbeitgeber (Prijava bolovanja)',
-                    prompt: 'Napiši kratki e-mail šefu u kojem obavještavaš da si bolestan, da ne dolaziš danas na posao, da ideš doktoru i da ćeš javiti čim dobiješ doznaku (AU-Bescheinigung).',
-                    placeholder: 'Sehr geehrte/r Frau/Herr...',
-                    answerB1: 'Hallo Herr Müller, ich bin heute krank und kann nicht zur Arbeit kommen. Ich gehe zum Arzt und schreibe Ihnen später.',
-                    answerB2: 'Sehr geehrter Herr Müller, hiermit möchte ich Sie darüber informieren, dass ich heute krankheitsbedingt nicht am Arbeitsplatz erscheinen kann. Ich werde heute Morgen einen Arzt aufsuchen und Ihnen die Arbeitsunfähigkeitsbescheinigung baldmöglichst zukommen lassen.',
-                    keywords: ['krankheitsbedingt', 'Arbeitsplatz', 'aufsuchen', 'Arbeitsunfähigkeitsbescheinigung', 'zukommen lassen'],
-                    tips: [
-                        'B1 koristi "ich bin krank", dok B2 koristi elegantnije "krankheitsbedingt nicht erscheinen können".',
-                        'Umjesto "ich schicke die Bescheinigung" koristi "zukommen lassen".'
-                    ]
-                },
-                {
-                    id: 'w2',
-                    topic: 'Wohnen & Miete',
-                    scenario: 'E-Mail an den Vermieter (Popravka u stanu)',
-                    prompt: 'Napiši poruku stanodavcu da grijanje u dnevnoj sobi ne radi već dva dana i zamoli ga za brzi dolazak majstora.',
-                    placeholder: 'Sehr geehrte/r Frau/Herr...',
-                    answerB1: 'Hallo Herr Weber, die Heizung im Wohnzimmer geht seit zwei Tagen nicht. Können Sie bitte einen Handwerker schicken?',
-                    answerB2: 'Sehr geehrter Herr Weber, ich muss Ihnen mitteilen, dass die Heizung im Wohnzimmer seit zwei Tagen außer Betrieb ist. Da es sehr kalt ist, bitte ich Sie, baldmöglichst einen Handwerker mit der Reparatur zu beauftragen.',
-                    keywords: ['außer Betrieb', 'mitteilen', 'baldmöglichst', 'beauftragen', 'Reparatur'],
-                    tips: [
-                        'Umjesto "geht nicht" koristi "ist außer Betrieb" ili "funktioniert nicht einwandfrei".'
-                    ]
+                    tips: ['Nominalni stil: "geplante Wartungsarbeiten finden statt".', 'B2 izraz za sistem u prekidu: "steht nicht zur Verfügung".']
                 }
             ],
             errors: [
@@ -128,33 +69,9 @@
                     topic: 'IT & Systemverwaltung',
                     sentence: 'Der Administrator hat das neue Firewall-Update gestern installiert werden.',
                     isCorrect: false,
-                    errorWord: 'installiert werden',
-                    correction: 'installiert',
                     correctSentence: 'Der Administrator hat das neue Firewall-Update gestern installiert.',
-                    explanation: 'Aktivna prošlost (Perfekt) se tvori: hat + Partizip II (installiert). Dodavanje "werden" pravi pogrešnu pasivnu konstrukciju.',
+                    explanation: 'Aktivna prošlost (Perfekt): hat + Partizip II (installiert). Dodavanje "werden" pravi grešku.',
                     category: 'Aktiv vs. Passiv'
-                },
-                {
-                    id: 'e_it2',
-                    topic: 'IT-Support & Helpdesk',
-                    sentence: 'Bei technische Problemen wenden Sie sich bitte direkt an den IT-Helpdesk.',
-                    isCorrect: false,
-                    errorWord: 'bei technische Problemen',
-                    correction: 'bei technischen Problemen',
-                    correctSentence: 'Bei technischen Problemen wenden Sie sich bitte direkt an den IT-Helpdesk.',
-                    explanation: 'Predlog "bei" uvek zahtijeva DATIV. Množina bez člana u dativu: pridjev dobija nastavak -en (bei technischen Problemen).',
-                    category: 'Adjektivdeklination (Dativ Plural)'
-                },
-                {
-                    id: 'e1',
-                    topic: 'Beruf',
-                    sentence: 'Ich freue mich sehr auf die gute Zusammenarbeit in die neue Firma.',
-                    isCorrect: false,
-                    errorWord: 'in die neue Firma',
-                    correction: 'in der neuen Firma',
-                    correctSentence: 'Ich freue mich sehr auf die gute Zusammenarbeit in der neuen Firma.',
-                    explanation: 'Pitanje je "Wo?" (u novoj firmi), što zahtijeva DATIV (in der modernen Firma).',
-                    category: 'Wechselpräpositionen'
                 }
             ],
             vocabulary: [
@@ -163,22 +80,10 @@
                     topic: 'IT & Systemverwaltung',
                     basic: 'neue Software aufspielen',
                     context: 'Wir müssen die neue Software auf den Servern installieren.',
-                    advanced: 'Software einspielen / aufspielen / bereitstellen',
                     options: ['bereitstellen', 'hochmachen', 'einsetzen tun', 'abstellen'],
                     correctOption: 'bereitstellen',
                     redemittel: 'eine Anwendung im Netzwerk bereitstellen / ausrollen',
                     example: 'Das Update wurde erfolgreich im gesamten Unternehmensnetzwerk bereitgestellt.'
-                },
-                {
-                    id: 'v_it2',
-                    topic: 'IT-Support & Helpdesk',
-                    basic: 'Zugang geben',
-                    context: 'Der neue Mitarbeiter braucht Zugang zum Ordner.',
-                    advanced: 'Zugriff gewähren / Berechtigung erteilen',
-                    options: ['Zugriff gewähren', 'Zugang erlauben', 'Rechte öffnen', 'Passwort schicken'],
-                    correctOption: 'Zugriff gewähren',
-                    redemittel: 'jemandem Zugriff auf ein System gewähren',
-                    example: 'Dem neuen Systemadministrator wurden die erforderlichen Zugriffsrechte gewährt.'
                 }
             ],
             grammarDrill: [
@@ -189,16 +94,17 @@
                     options: ['gesichert', 'sichern', 'gesichert werden', 'sicherte'],
                     correct: 'gesichert',
                     explanation: 'Sadašnji pasiv (Präsens Passiv): werden + Partizip II (gesichert).'
-                },
-                {
-                    id: 'g1',
-                    topic: 'Beruf',
-                    question: 'Ich rufe Sie an, _____ ich eine Frage zu meiner Abrechnung habe.',
-                    options: ['weil', 'denn', 'deshalb', 'trotzdem'],
-                    correct: 'weil',
-                    explanation: 'Glagol "habe" je na kraju rečenice -> zavisni veznik "weil".'
                 }
             ]
+        };
+
+        // KOMBINOVANJE SA EXTRA_LESSONS IZ lessons.js
+        const extra = window.EXTRA_LESSONS || {};
+        const INITIAL_DATASET = {
+            writing: [...BASE_DATASET.writing, ...(extra.writing || [])],
+            errors: [...BASE_DATASET.errors, ...(extra.errors || [])],
+            vocabulary: [...BASE_DATASET.vocabulary, ...(extra.vocabulary || [])],
+            grammarDrill: [...BASE_DATASET.grammarDrill, ...(extra.grammarDrill || [])]
         };
 
         const ALL_TOPICS = [
@@ -210,20 +116,24 @@
             { id: 'Wohnen & Miete', label: 'Wohnen & Stanovanje', icon: 'home' }
         ];
 
-        // --- FULL MULTI-MODULE APP COMPONENT ---
         function App() {
             const [activeTab, setActiveTab] = useState('writing');
             const [selectedTopic, setSelectedTopic] = useState('All');
+            const [writingIndex, setWritingIndex] = useState(0);
+            const [errorIndex, setErrorIndex] = useState(0);
+            const [vocabIndex, setVocabIndex] = useState(0);
+            const [grammarIndex, setGrammarIndex] = useState(0);
+
             const [userInput, setUserInput] = useState('');
             const [showAnswers, setShowAnswers] = useState(false);
             const [selectedChoice, setSelectedChoice] = useState(null);
             const [hasSubmitted, setHasSubmitted] = useState(false);
             const [vocabAnswer, setVocabAnswer] = useState(null);
             const [grammarAnswer, setGrammarAnswer] = useState(null);
-            
+
             const [stats, setStats] = useState(() => {
                 const saved = localStorage.getItem('de_meister_stats');
-                return saved ? JSON.parse(saved) : { xp: 120, streak: 3, completed: 14 };
+                return saved ? JSON.parse(saved) : { xp: 150, streak: 4 };
             });
 
             const [customLab, setCustomLab] = useState(() => {
@@ -237,7 +147,7 @@
                 if (window.lucide) {
                     window.lucide.createIcons();
                 }
-            }, [activeTab, selectedTopic, showAnswers, hasSubmitted, vocabAnswer, grammarAnswer, customLab]);
+            }, [activeTab, selectedTopic, showAnswers, hasSubmitted, vocabAnswer, grammarAnswer, writingIndex, errorIndex, vocabIndex, grammarIndex, customLab]);
 
             useEffect(() => {
                 localStorage.setItem('de_meister_custom', JSON.stringify(customLab));
@@ -257,10 +167,15 @@
                 return list.filter(item => item.topic === selectedTopic);
             };
 
-            const currentWriting = filterByTopic(INITIAL_DATASET.writing)[0] || INITIAL_DATASET.writing[0];
-            const currentError = filterByTopic(INITIAL_DATASET.errors)[0] || INITIAL_DATASET.errors[0];
-            const currentVocab = filterByTopic(INITIAL_DATASET.vocabulary)[0] || INITIAL_DATASET.vocabulary[0];
-            const currentGrammar = filterByTopic(INITIAL_DATASET.grammarDrill)[0] || INITIAL_DATASET.grammarDrill[0];
+            const filteredWriting = filterByTopic(INITIAL_DATASET.writing);
+            const filteredErrors = filterByTopic(INITIAL_DATASET.errors);
+            const filteredVocab = filterByTopic(INITIAL_DATASET.vocabulary);
+            const filteredGrammar = filterByTopic(INITIAL_DATASET.grammarDrill);
+
+            const currentWriting = filteredWriting[writingIndex % (filteredWriting.length || 1)] || INITIAL_DATASET.writing[0];
+            const currentError = filteredErrors[errorIndex % (filteredErrors.length || 1)] || INITIAL_DATASET.errors[0];
+            const currentVocab = filteredVocab[vocabIndex % (filteredVocab.length || 1)] || INITIAL_DATASET.vocabulary[0];
+            const currentGrammar = filteredGrammar[grammarIndex % (filteredGrammar.length || 1)] || INITIAL_DATASET.grammarDrill[0];
 
             const addCustom = (e) => {
                 e.preventDefault();
@@ -281,7 +196,7 @@
                                 </div>
                                 <div>
                                     <h1 className="text-base font-extrabold text-white">Deutsch Studio B1/B2</h1>
-                                    <p className="text-[10px] text-indigo-400 font-semibold tracking-wider uppercase">Profi Master Edition</p>
+                                    <p className="text-[10px] text-indigo-400 font-semibold tracking-wider uppercase">Učitano lekcija: {INITIAL_DATASET.writing.length + INITIAL_DATASET.errors.length + INITIAL_DATASET.vocabulary.length}</p>
                                 </div>
                             </div>
 
@@ -302,10 +217,10 @@
                             {ALL_TOPICS.map(t => (
                                 <button
                                     key={t.id}
-                                    onClick={() => setSelectedTopic(t.id)}
+                                    onClick={() => { setSelectedTopic(t.id); setWritingIndex(0); setErrorIndex(0); setVocabIndex(0); setGrammarIndex(0); }}
                                     className={`px-3 py-1.5 rounded-xl text-xs font-medium shrink-0 transition flex items-center gap-2 ${
                                         selectedTopic === t.id
-                                            ? 'bg-indigo-600 text-white'
+                                            ? 'bg-indigo-600 text-white font-bold'
                                             : 'bg-slate-900 text-slate-400 hover:bg-slate-800'
                                     }`}
                                 >
@@ -328,7 +243,7 @@
                             ].map(tab => (
                                 <button
                                     key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
+                                    onClick={() => { setActiveTab(tab.id); setShowAnswers(false); setHasSubmitted(false); setVocabAnswer(null); setGrammarAnswer(null); }}
                                     className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition ${
                                         activeTab === tab.id
                                             ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md'
@@ -342,28 +257,31 @@
                         </div>
                     </nav>
 
-                    {/* Main Content Area */}
+                    {/* Main Content */}
                     <main className="max-w-4xl mx-auto px-4">
                         {/* TAB 1: WRITING */}
-                        {activeTab === 'writing' && (
-                            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 shadow-xl">
-                                <div className="flex justify-between items-center mb-4">
+                        {activeTab === 'writing' && currentWriting && (
+                            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4">
+                                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
                                     <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 text-xs font-semibold rounded-full border border-indigo-500/20">
-                                        {currentWriting.topic} • {currentWriting.scenario}
+                                        {currentWriting.topic}
                                     </span>
-                                    <button onClick={() => speak(currentWriting.prompt)} className="text-slate-400 hover:text-white text-xs flex items-center gap-1">
-                                        <Icon name="volume-2" className="w-3.5 h-3.5" /> Poslušaj
+                                    <button 
+                                        onClick={() => setWritingIndex(writingIndex + 1)}
+                                        className="text-xs text-indigo-400 hover:underline font-bold">
+                                        Sljedeća vježba ({writingIndex + 1}/{filteredWriting.length || 1}) &rarr;
                                     </button>
                                 </div>
 
-                                <h3 className="text-slate-100 font-semibold text-base mb-4">{currentWriting.prompt}</h3>
+                                <h3 className="text-slate-100 font-bold text-base">{currentWriting.scenario}</h3>
+                                <p className="text-slate-300 text-sm bg-slate-950/60 p-4 rounded-xl border border-slate-800">{currentWriting.prompt}</p>
 
                                 <textarea
-                                    rows={5}
+                                    rows={4}
                                     value={userInput}
                                     onChange={(e) => setUserInput(e.target.value)}
                                     placeholder={currentWriting.placeholder}
-                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 transition resize-none mb-4"
+                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-100 text-sm focus:outline-none focus:border-indigo-500 transition resize-none"
                                 />
 
                                 <button
@@ -375,15 +293,21 @@
                                 </button>
 
                                 {showAnswers && (
-                                    <div className="space-y-4 mt-6 animate-fadeIn">
-                                        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
-                                            <span className="text-xs font-bold text-amber-400 uppercase block mb-1">Standardna B1 Varijanta:</span>
-                                            <p className="text-slate-300 text-sm italic">"{currentWriting.answerB1}"</p>
+                                    <div className="space-y-4 pt-4 border-t border-slate-800 animate-fadeIn">
+                                        <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="text-xs font-bold text-amber-400 uppercase">Standardna B1 Varijanta:</span>
+                                                <button onClick={() => speak(currentWriting.answerB1)} className="text-xs text-slate-400">🔊 Izgovor</button>
+                                            </div>
+                                            <p className="text-slate-300 text-xs italic">"{currentWriting.answerB1}"</p>
                                         </div>
 
-                                        <div className="bg-emerald-950/20 border border-emerald-500/30 rounded-2xl p-5">
-                                            <span className="text-xs font-bold text-emerald-400 uppercase block mb-1">Elevirana / Poslovna B2 Varijanta:</span>
-                                            <p className="text-slate-100 text-sm font-medium italic mb-2">"{currentWriting.answerB2}"</p>
+                                        <div className="bg-emerald-950/20 border border-emerald-500/30 rounded-2xl p-4">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="text-xs font-bold text-emerald-400 uppercase">Poslovna B2 Varijanta:</span>
+                                                <button onClick={() => speak(currentWriting.answerB2)} className="text-xs text-slate-400">🔊 Izgovor</button>
+                                            </div>
+                                            <p className="text-slate-100 text-xs font-medium italic mb-2">"{currentWriting.answerB2}"</p>
                                             {currentWriting.tips && (
                                                 <div className="pt-2 border-t border-emerald-500/20 space-y-1">
                                                     {currentWriting.tips.map((tip, i) => (
@@ -398,41 +322,52 @@
                         )}
 
                         {/* TAB 2: ERROR DETECTOR */}
-                        {activeTab === 'error' && (
-                            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 shadow-xl">
-                                <span className="px-3 py-1 bg-violet-500/10 text-violet-400 text-xs font-semibold rounded-full border border-violet-500/20 mb-4 inline-block">
-                                    {currentError.category}
-                                </span>
-                                <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 mb-6 text-center text-lg font-medium text-slate-100">
+                        {activeTab === 'error' && currentError && (
+                            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4">
+                                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                                    <span className="px-3 py-1 bg-violet-500/10 text-violet-400 text-xs font-semibold rounded-full border border-violet-500/20">
+                                        {currentError.category}
+                                    </span>
+                                    <button 
+                                        onClick={() => { setErrorIndex(errorIndex + 1); setHasSubmitted(false); setSelectedChoice(null); }}
+                                        className="text-xs text-indigo-400 hover:underline font-bold">
+                                        Sljedeći primjer ({errorIndex + 1}/{filteredErrors.length || 1}) &rarr;
+                                    </button>
+                                </div>
+
+                                <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 text-center text-sm font-mono text-slate-100">
                                     "{currentError.sentence}"
                                 </div>
-                                <div className="grid grid-cols-2 gap-4 mb-6">
+
+                                <div className="grid grid-cols-2 gap-4">
                                     <button
                                         onClick={() => setSelectedChoice(true)}
-                                        className={`p-4 rounded-xl border font-bold text-sm transition ${selectedChoice === true ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' : 'bg-slate-950 border-slate-800 text-slate-400'}`}
+                                        className={`p-4 rounded-xl border font-bold text-xs transition ${selectedChoice === true ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' : 'bg-slate-950 border-slate-800 text-slate-400'}`}
                                     >
                                         Tačno (Richtig)
                                     </button>
                                     <button
                                         onClick={() => setSelectedChoice(false)}
-                                        className={`p-4 rounded-xl border font-bold text-sm transition ${selectedChoice === false ? 'bg-rose-500/20 border-rose-500 text-rose-300' : 'bg-slate-950 border-slate-800 text-slate-400'}`}
+                                        className={`p-4 rounded-xl border font-bold text-xs transition ${selectedChoice === false ? 'bg-rose-500/20 border-rose-500 text-rose-300' : 'bg-slate-950 border-slate-800 text-slate-400'}`}
                                     >
                                         Netačno (Falsch)
                                     </button>
                                 </div>
+
                                 <button
                                     onClick={() => setHasSubmitted(true)}
                                     disabled={selectedChoice === null}
-                                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-xl font-bold text-sm"
+                                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-xl font-bold text-xs"
                                 >
                                     Potvrdi Odgovor
                                 </button>
+
                                 {hasSubmitted && (
-                                    <div className="mt-4 p-4 rounded-xl bg-slate-950 border border-slate-800 text-sm">
-                                        <p className="font-bold mb-1">{selectedChoice === currentError.isCorrect ? '✅ Tačna procjena!' : '❌ Pogrešna procjena!'}</p>
-                                        <p className="text-slate-300">{currentError.explanation}</p>
+                                    <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-2 animate-fadeIn">
+                                        <p className="font-bold">{selectedChoice === currentError.isCorrect ? '✅ Tačna procjena!' : '❌ Pogrešna procjena!'}</p>
+                                        <p className="text-slate-300 leading-relaxed">{currentError.explanation}</p>
                                         {!currentError.isCorrect && (
-                                            <p className="text-emerald-300 font-semibold mt-2">Ispravno: "{currentError.correctSentence}"</p>
+                                            <p className="text-emerald-300 font-semibold font-mono">Ispravno: "{currentError.correctSentence}"</p>
                                         )}
                                     </div>
                                 )}
@@ -440,53 +375,89 @@
                         )}
 
                         {/* TAB 3: VOCABULARY */}
-                        {activeTab === 'vocab' && (
-                            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 shadow-xl">
-                                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 mb-6">
-                                    <span className="text-xs text-slate-500 uppercase block mb-1">B1 Osnovna Riječ:</span>
-                                    <span className="text-xl font-bold text-amber-400">{currentVocab.basic}</span>
+                        {activeTab === 'vocab' && currentVocab && (
+                            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4">
+                                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                                    <span className="text-xs font-bold text-indigo-400">Vokabular Vježba ({vocabIndex + 1}/{filteredVocab.length || 1})</span>
+                                    <button 
+                                        onClick={() => { setVocabIndex(vocabIndex + 1); setVocabAnswer(null); }}
+                                        className="text-xs text-indigo-400 hover:underline font-bold">
+                                        Sljedeći izraz &rarr;
+                                    </button>
+                                </div>
+
+                                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                                    <span className="text-[10px] text-slate-500 uppercase block mb-1">B1 Osnovna Riječ:</span>
+                                    <span className="text-lg font-bold text-amber-400">{currentVocab.basic}</span>
                                     <p className="text-xs text-slate-400 mt-1 italic">"{currentVocab.context}"</p>
                                 </div>
-                                <p className="text-xs font-bold text-slate-300 uppercase mb-3">Izaberi naprednu B2 alternativu:</p>
-                                <div className="grid grid-cols-2 gap-3 mb-6">
+
+                                <p className="text-xs font-bold text-slate-300 uppercase">Izaberi naprednu B2 alternativu:</p>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {currentVocab.options.map((opt, i) => (
                                         <button
                                             key={i}
                                             onClick={() => setVocabAnswer(opt)}
-                                            className={`p-4 rounded-xl border text-left text-sm font-semibold transition ${vocabAnswer === opt ? (opt === currentVocab.correctOption ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' : 'bg-rose-500/20 border-rose-500 text-rose-300') : 'bg-slate-950 border-slate-800 text-slate-300'}`}
+                                            className={`p-3.5 rounded-xl border text-left text-xs font-semibold transition ${vocabAnswer === opt ? (opt === currentVocab.correctOption ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 font-bold' : 'bg-rose-500/20 border-rose-500 text-rose-300 font-bold') : 'bg-slate-950 border-slate-800 text-slate-300'}`}
                                         >
                                             {opt}
                                         </button>
                                     ))}
                                 </div>
+
+                                {vocabAnswer && (
+                                    <div className="bg-slate-950 p-4 rounded-xl border border-indigo-500/30 text-xs space-y-1 animate-fadeIn">
+                                        <span className="font-bold text-indigo-400 uppercase block">Fiksna B2 Fraza:</span>
+                                        <p className="text-slate-200 font-mono">{currentVocab.redemittel}</p>
+                                        <p className="text-slate-400 italic">Primjer: "{currentVocab.example}"</p>
+                                    </div>
+                                )}
                             </div>
                         )}
 
                         {/* TAB 4: GRAMMAR DRILL */}
-                        {activeTab === 'grammar' && (
-                            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 shadow-xl">
-                                <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 mb-6 text-center text-base font-semibold">
+                        {activeTab === 'grammar' && currentGrammar && (
+                            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4">
+                                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                                    <span className="text-xs font-bold text-indigo-400">Gramatika Drill ({grammarIndex + 1}/{filteredGrammar.length || 1})</span>
+                                    <button 
+                                        onClick={() => { setGrammarIndex(grammarIndex + 1); setGrammarAnswer(null); }}
+                                        className="text-xs text-indigo-400 hover:underline font-bold">
+                                        Sljedeća rečenica &rarr;
+                                    </button>
+                                </div>
+
+                                <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 text-center text-sm font-semibold">
                                     {currentGrammar.question}
                                 </div>
-                                <div className="grid grid-cols-2 gap-3 mb-6">
+
+                                <div className="grid grid-cols-2 gap-3">
                                     {currentGrammar.options.map((opt, i) => (
                                         <button
                                             key={i}
                                             onClick={() => setGrammarAnswer(opt)}
-                                            className={`p-4 rounded-xl border text-center text-sm font-semibold transition ${grammarAnswer === opt ? (opt === currentGrammar.correct ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' : 'bg-rose-500/20 border-rose-500 text-rose-300') : 'bg-slate-950 border-slate-800 text-slate-300'}`}
+                                            className={`p-3.5 rounded-xl border text-center text-xs font-semibold transition ${grammarAnswer === opt ? (opt === currentGrammar.correct ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 font-bold' : 'bg-rose-500/20 border-rose-500 text-rose-300 font-bold') : 'bg-slate-950 border-slate-800 text-slate-300'}`}
                                         >
                                             {opt}
                                         </button>
                                     ))}
                                 </div>
+
+                                {grammarAnswer && (
+                                    <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs text-slate-300 animate-fadeIn">
+                                        <span className="font-bold text-indigo-400 block mb-1">Objašnjenje pravila:</span>
+                                        {currentGrammar.explanation}
+                                    </div>
+                                )}
                             </div>
                         )}
 
                         {/* TAB 5: MY LAB / MOJA BAZA */}
                         {activeTab === 'lab' && (
-                            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 shadow-xl">
-                                <form onSubmit={addCustom} className="space-y-3 bg-slate-950 p-4 rounded-xl border border-slate-800 mb-6">
-                                    <h3 className="text-sm font-bold text-white">Dodaj Novu Riječ ili Rečenicu:</h3>
+                            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 shadow-xl space-y-5">
+                                <form onSubmit={addCustom} className="space-y-3 bg-slate-950 p-4 rounded-xl border border-slate-800">
+                                    <h3 className="text-xs font-bold text-white uppercase">Dodaj Novu Riječ ili Rečenicu:</h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <input
                                             type="text"
@@ -533,9 +504,18 @@
             );
         }
 
-        // Render Aplikacije
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
 </body>
 </html>
+```
+3. Klikni na **"Commit changes..."**.
+
+---
+
+### Šta se sada dešava?
+Čim prođe 10 sekundi, Vercel će osvježiti sajt i u gornjem zaglavlju ćeš vidjeti natpis:
+`Učitano lekcija: ...` gdje će se automatski uračunati sve vježbe iz tvog `lessons.js` fajla! 
+
+Sada kad god dodamo novu grupu lekcija u `lessons.js`, sajt će ih odmah učitati bez ikakvih dodatnih podešavanja!
